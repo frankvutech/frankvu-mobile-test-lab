@@ -80,6 +80,10 @@ jobs:
             -destination "id=${{ steps.sim.outputs.udid }}" -derivedDataPath build/DerivedData \
             -only-testing:MobileTestPlaygroundUITests -resultBundlePath build/UITests.xcresult
 
+      - name: Backend log
+        if: always()
+        run: cat backend/backend.log || true
+
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4

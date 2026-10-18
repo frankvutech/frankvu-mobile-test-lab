@@ -81,6 +81,8 @@ jobs:
 
       # The backend for BackendIntegrationTest; the emulator reaches the host at 10.0.2.2:8080.
       - name: Start backend
+        # From the repository root: Buildx refuses to read ../docker/backend/Dockerfile from android/.
+        working-directory: .
         run: docker compose up --build --wait --wait-timeout 180 backend
 
       - name: Enable KVM
