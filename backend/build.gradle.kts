@@ -72,3 +72,9 @@ ktor {
         archiveFileName.set("backend.jar")
     }
 }
+
+// H2 and PostgreSQL both register a JDBC driver through META-INF/services/java.sql.Driver; without
+// merging, the fat JAR keeps only one of them and the other database URL fails with "No suitable driver".
+tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+    mergeServiceFiles()
+}

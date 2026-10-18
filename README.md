@@ -273,7 +273,7 @@ Xcode 27.1). "Not run" means not verified, not "failed".
 | Backend unit + integration tests (13) | ✅ Passed (Ktor test engine, H2) |
 | Backend runs (Gradle and fat JAR); `/health`, `/ready`, `/docs` | ✅ Verified on the host |
 | API automation (81 tests) | ✅ Passed against the running backend (H2), also in reverse order |
-| Backend on PostgreSQL via Docker Compose | ⏳ Not run: the Docker daemon was unresponsive on the build machine |
+| Backend on PostgreSQL via Docker Compose | ✅ `make backend-up` (image built, both health checks green, PostgreSQL 16); API automation 81/81 passed against it |
 | Android debug APK, ktlint, detekt, Lint, JVM unit tests (domain 31, data 15, app 16) | ✅ Passed |
 | Android instrumented: 35 Compose UI + 9 UIAutomator (offline mode) + 3 backend integration | ✅ 46/47 in the last full run; the one failure (a Test Mode reset bug it exposed) was fixed and its suite re-run green |
 | Android ↔ backend end to end | ✅ `BackendIntegrationTest` passed on the emulator; server log confirms the calls |
