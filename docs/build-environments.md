@@ -30,6 +30,11 @@ SDK path never leaks into the container.
 The image is `linux/amd64` because AAPT2 ships only as an x86-64 Linux binary; on Apple Silicon it
 runs under Rosetta and is slower than a native host build.
 
+On a Linux host the bind mount keeps host file ownership, and the container's `builder` user usually
+has a different UID, so Gradle cannot create `android/.gradle` ("Cannot create directory"). Make the
+checkout writable first (`chmod -R a+rwX .`, as CI does). Docker Desktop on macOS does not have this
+problem.
+
 ### Mode 2 — emulator inside Docker
 
 **Not provided.** An emulator needs hardware virtualisation (`/dev/kvm`), which Docker Desktop on

@@ -32,6 +32,9 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The action's default ("tools platform-tools") fails: the legacy "tools" package no longer exists.
+          packages: "platform-tools platforms;android-35 build-tools;35.0.0"
 
       - name: Set up Gradle (with cache)
         uses: gradle/actions/setup-gradle@v4
@@ -92,6 +95,9 @@ jobs:
           java-version: "17"
 
       - uses: android-actions/setup-android@v3
+        with:
+          # The action's default ("tools platform-tools") fails: the legacy "tools" package no longer exists.
+          packages: "platform-tools platforms;android-35 build-tools;35.0.0"
 
       - uses: gradle/actions/setup-gradle@v4
 
@@ -128,6 +134,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build image
         run: docker compose build android
+      - name: Let the container user write to the mounted checkout
+        # On Linux a bind mount keeps the runner's ownership; the image's "builder" user has another UID.
+        run: chmod -R a+rwX .
       - name: Quality gate and APK inside the container
         run: docker compose run --rm android
       - name: Upload APK built in Docker
