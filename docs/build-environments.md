@@ -10,7 +10,7 @@
 | Compose UI and UIAutomator tests | Host emulator or a USB device (`./gradlew :app:connectedDebugAndroidTest`) |
 
 Host requirements: JDK 17+ (the project compiles to Java 17 bytecode; JDK 21 also works), Android SDK
-with platform 35 and build-tools 35, an emulator image (API 26+; tests are verified on API 34).
+with platform 35 and build-tools 36, an emulator image (API 26+; tests are verified on API 34).
 Point Gradle at the SDK with `android/local.properties` (`sdk.dir=...`) or `ANDROID_HOME`.
 
 Docker:
@@ -22,7 +22,7 @@ docker compose run --rm android ./gradlew --no-daemon :core:domain:test
 ```
 
 The image (`docker/android/Dockerfile`) contains Temurin JDK 17, Android command-line tools, platform
-35, build-tools 35 and platform-tools. The repository is bind-mounted, so the APK appears at
+35, build-tools 36 and platform-tools. The repository is bind-mounted, so the APK appears at
 `android/app/build/outputs/apk/debug/app-debug.apk` on the host. Gradle caches persist in the
 `gradle-cache` volume. A container-specific `local.properties` is mounted over the host's so a host
 SDK path never leaks into the container.

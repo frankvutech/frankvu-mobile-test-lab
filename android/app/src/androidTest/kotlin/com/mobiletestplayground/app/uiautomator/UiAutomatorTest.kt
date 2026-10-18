@@ -44,13 +44,20 @@ class UiAutomatorTest {
 
     private val device: UiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
 
-    /** On failure, logs what UIAutomator saw, so a CI failure shows the screen without a screenshot. */
+    /**
+     * On failure, logs what UIAutomator saw and every thread of the app process (the tests run in it),
+     * so a CI failure shows the screen and anything blocked without a screenshot or debugger.
+     */
     @get:Rule(order = 1)
     val dumpOnFailure =
         object : TestWatcher() {
             override fun failed(e: Throwable?, description: Description) {
                 val hierarchy = ByteArrayOutputStream().also { device.dumpWindowHierarchy(it) }.toString()
                 hierarchy.chunked(LOG_CHUNK).forEach { Log.e(LOG_TAG, it) }
+                Thread.getAllStackTraces().forEach { (thread, frames) ->
+                    val trace = frames.take(MAX_FRAMES).joinToString("\n") { "    at $it" }
+                    Log.e(LOG_TAG, "Thread ${thread.name} (${thread.state})\n$trace")
+                }
             }
         }
     private val context: Context = ApplicationProvider.getApplicationContext()
@@ -250,6 +257,7 @@ class UiAutomatorTest {
         const val WEB_TIMEOUT = 20_000L
         const val LOG_TAG = "UiAutomatorTest"
         const val LOG_CHUNK = 3_000
+        const val MAX_FRAMES = 25
         const val MAX_SCROLLS = 15
         const val SCROLL_PERCENT = 0.8f
         const val SWIPE_STEPS = 20

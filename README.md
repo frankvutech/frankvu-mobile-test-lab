@@ -164,7 +164,7 @@ Details, including persistence rules and documented exceptions: [docs/architectu
 
 ## Running Android
 
-Requirements: JDK 17 or newer, Android SDK (platform 35, build-tools 35), an emulator or device
+Requirements: JDK 17 or newer, Android SDK (platform 35, build-tools 36), an emulator or device
 (API 26+).
 
 ```bash
@@ -283,8 +283,8 @@ Xcode 27.1). "Not run" means not verified, not "failed".
 | SwiftLint | ✅ No violations |
 | GitHub Actions: Backend and API tests | ✅ Passed on GitHub (PostgreSQL + backend in Compose, backend tests, 81 API tests) |
 | GitHub Actions: iOS | ✅ Passed on GitHub (macOS runner: unit tests incl. live backend, 18 XCUITests) |
-| GitHub Actions: Android build and Docker jobs | ✅ Passed on GitHub (lint, unit tests, APKs; APK built inside the Docker image) |
-| GitHub Actions: Android emulator job | ⏳ Last GitHub run: Compose and backend tests passed, 5 UIAutomator tests timed out on the slow emulator; longer timeouts not yet run on GitHub |
+| GitHub Actions: Android build and Docker jobs | ✅ Passed on GitHub (lint, unit tests, APKs; APK built inside the Docker image). One later Docker run failed on a corrupted build-tools download; the image now pre-installs it |
+| GitHub Actions: Android emulator job | ❌ Last GitHub run: 44/47 passed (all Compose and backend tests). 3 UIAutomator tests fail on CI only: after a valid login the screen stays on "Signing in". Passes 47/47 locally; root cause under investigation (failure dumps added) |
 
 ## Troubleshooting
 

@@ -9,12 +9,13 @@
 FROM --platform=linux/amd64 eclipse-temurin:17-jdk-jammy
 
 # Command-line tools 11076708 is the last revision distributed as a plain zip with sdkmanager.
-# Platform and build-tools versions match compileSdk in android/gradle/libs.versions.toml.
+# Platform matches compileSdk in android/gradle/libs.versions.toml; build-tools is the default of the
+# Android Gradle Plugin in use (AGP 9.3: 36.0.0), so Gradle never downloads it during a build.
 ENV ANDROID_SDK_ROOT=/opt/android-sdk \
     ANDROID_HOME=/opt/android-sdk \
     CMDLINE_TOOLS_VERSION=11076708 \
     ANDROID_COMPILE_SDK=35 \
-    ANDROID_BUILD_TOOLS=35.0.0 \
+    ANDROID_BUILD_TOOLS=36.0.0 \
     GRADLE_USER_HOME=/home/builder/.gradle \
     DEBIAN_FRONTEND=noninteractive
 
