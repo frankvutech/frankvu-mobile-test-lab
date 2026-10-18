@@ -3,6 +3,7 @@ package com.mobiletestplayground.app.uiautomator
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -20,7 +21,10 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestWatcher
+import org.junit.runner.Description
 import org.junit.runner.RunWith
+import java.io.ByteArrayOutputStream
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -35,10 +39,20 @@ import kotlin.test.assertTrue
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
 class UiAutomatorTest {
-    @get:Rule
+    @get:Rule(order = 0)
     val hilt = HiltAndroidRule(this)
 
     private val device: UiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+
+    /** On failure, logs what UIAutomator saw, so a CI failure shows the screen without a screenshot. */
+    @get:Rule(order = 1)
+    val dumpOnFailure =
+        object : TestWatcher() {
+            override fun failed(e: Throwable?, description: Description) {
+                val hierarchy = ByteArrayOutputStream().also { device.dumpWindowHierarchy(it) }.toString()
+                hierarchy.chunked(LOG_CHUNK).forEach { Log.e(LOG_TAG, it) }
+            }
+        }
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val packageName = context.packageName
 
@@ -229,8 +243,13 @@ class UiAutomatorTest {
     }
 
     private companion object {
-        const val TIMEOUT = 5_000L
-        const val WEB_TIMEOUT = 10_000L
+        // Generous because UIAutomator, unlike Compose tests, does not wait for the UI to go idle: on a
+        // software-rendered CI emulator a screen transition can take seconds. Waits end as soon as the
+        // element appears, so a fast device does not pay for it.
+        const val TIMEOUT = 15_000L
+        const val WEB_TIMEOUT = 20_000L
+        const val LOG_TAG = "UiAutomatorTest"
+        const val LOG_CHUNK = 3_000
         const val MAX_SCROLLS = 15
         const val SCROLL_PERCENT = 0.8f
         const val SWIPE_STEPS = 20

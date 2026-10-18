@@ -29,10 +29,10 @@ and HTML elements inside it by their HTML ids, e.g. `By.res("web_input")`.
 
 ```bash
 cd android
-./gradlew connectedDebugAndroidTest                       # everything, on a running emulator/device
-./gradlew connectedDebugAndroidTest \
+./gradlew :app:connectedDebugAndroidTest                       # everything, on a running emulator/device
+./gradlew :app:connectedDebugAndroidTest \
   -Pandroid.testInstrumentationRunnerArguments.class=com.mobiletestplayground.app.compose.FormsTest
-./gradlew connectedDebugAndroidTest \
+./gradlew :app:connectedDebugAndroidTest \
   -Pandroid.testInstrumentationRunnerArguments.package=com.mobiletestplayground.app.uiautomator
 ```
 

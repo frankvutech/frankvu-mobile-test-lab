@@ -227,8 +227,7 @@ See [docs/build-environments.md](docs/build-environments.md).
 - **Backend and API** (`.github/workflows/backend.yml`): starts PostgreSQL + backend with Docker
   Compose, waits for health, runs backend lint and tests, runs the pytest suite, uploads reports.
 
-These workflows have not been run on GitHub from this repository yet; see
-[Verification status](#verification-status).
+Current GitHub results are in [Verification status](#verification-status).
 
 ## Test credentials
 
@@ -277,12 +276,15 @@ Xcode 27.1). "Not run" means not verified, not "failed".
 | Android debug APK, ktlint, detekt, Lint, JVM unit tests (domain 31, data 15, app 16) | ✅ Passed |
 | Android instrumented: 35 Compose UI + 9 UIAutomator (offline mode) + 3 backend integration | ✅ 46/47 in the last full run; the one failure (a Test Mode reset bug it exposed) was fixed and its suite re-run green |
 | Android ↔ backend end to end | ✅ `BackendIntegrationTest` passed on the emulator; server log confirms the calls |
-| Android Docker image builds; APK built in the container | Image ✅ built; in-container build ⏳ not completed (the host disk filled up during the run) |
+| Android Docker image builds; APK built in the container | ✅ On GitHub Actions (ubuntu runner): image built, quality gate and APK inside the container |
 | iOS app and test bundles build in Xcode | ✅ `xcodebuild build-for-testing`, iPhone 17 simulator |
 | iOS unit tests (25, incl. live backend) | ✅ Passed in the simulator, and on the macOS host via SwiftPM |
 | XCUITest (18, incl. `BackendUITests` against the live backend) | ✅ 18/18 passed in the simulator |
 | SwiftLint | ✅ No violations |
-| GitHub Actions (backend, Android, iOS) | ⏳ Configured, not yet run on GitHub |
+| GitHub Actions: Backend and API tests | ✅ Passed on GitHub (PostgreSQL + backend in Compose, backend tests, 81 API tests) |
+| GitHub Actions: iOS | ✅ Passed on GitHub (macOS runner: unit tests incl. live backend, 18 XCUITests) |
+| GitHub Actions: Android build and Docker jobs | ✅ Passed on GitHub (lint, unit tests, APKs; APK built inside the Docker image) |
+| GitHub Actions: Android emulator job | ⏳ Last GitHub run: Compose and backend tests passed, 5 UIAutomator tests timed out on the slow emulator; longer timeouts not yet run on GitHub |
 
 ## Troubleshooting
 
@@ -293,7 +295,7 @@ Xcode 27.1). "Not run" means not verified, not "failed".
 | `SDK location not found` | Create `android/local.properties` with `sdk.dir=…` or set `ANDROID_HOME`. |
 | `You have not agreed to the Xcode license agreements` | Run `sudo xcodebuild -license accept`. |
 | Strings or IDs changed but builds use old ones | Run `make generate`; CI fails on stale generated files. |
-| Instrumented tests leak state between classes | They should not: the orchestrator clears app data per test. Run through Gradle (`connectedDebugAndroidTest`), not by launching classes manually from the device. |
+| Instrumented tests leak state between classes | They should not: the orchestrator clears app data per test. Run through Gradle (`:app:connectedDebugAndroidTest`), not by launching classes manually from the device. |
 | UIAutomator cannot find a Compose element | Check it has a test tag and is on screen (UIAutomator sees only rendered nodes; scroll first). |
 | XCUITest finds stale data | Launch with `-uiTestReset`; the base class does this. |
 | Docker build slow on Apple Silicon | Expected: the image is `linux/amd64` (AAPT2 has no arm64 Linux build) and runs under emulation. |

@@ -64,7 +64,7 @@ android-quality: ## Everything CI runs without a device
 	$(ANDROID) qualityCheck
 
 android-ui-test: ## Compose UI + UIAutomator tests on a running emulator/device
-	$(ANDROID) connectedDebugAndroidTest
+	$(ANDROID) :app:connectedDebugAndroidTest
 
 android-install: ## Install the debug APK on a running emulator/device
 	$(ANDROID) installDebug

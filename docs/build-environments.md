@@ -7,7 +7,7 @@
 | Task | Where |
 |---|---|
 | Unit tests, ktlint, detekt, Android Lint, debug APK | Host Gradle **or** Docker |
-| Compose UI and UIAutomator tests | Host emulator or a USB device (`./gradlew connectedDebugAndroidTest`) |
+| Compose UI and UIAutomator tests | Host emulator or a USB device (`./gradlew :app:connectedDebugAndroidTest`) |
 
 Host requirements: JDK 17+ (the project compiles to Java 17 bytecode; JDK 21 also works), Android SDK
 with platform 35 and build-tools 35, an emulator image (API 26+; tests are verified on API 34).
