@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The one classic View in the app (the embedded WebView) needs a View id for UIAutomator,
+         which sees it as "<package>:id/webview". Compose elements use test tags instead. -->
+    <item name="webview" type="id" />
+</resources>

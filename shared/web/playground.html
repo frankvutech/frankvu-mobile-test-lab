@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!--
+  The WebView scenario page, shared by Android (assets) and iOS (bundle resource).
+  It has no external dependencies. Element ids are stable automation identifiers.
+  The native side calls setLanguage('en'|'de') after load and window.receiveFromNative(text).
+  Messages to native go through window.AndroidBridge.postMessage (Android) or
+  window.webkit.messageHandlers.bridge.postMessage (iOS).
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Web Playground</title>
+  <style>
+    body { font-family: -apple-system, Roboto, sans-serif; margin: 16px; color: #1c1b1f; background: #ffffff; }
+    @media (prefers-color-scheme: dark) { body { color: #e6e1e5; background: #1c1b1f; } }
+    label, button, input { font-size: 16px; }
+    input[type=text] { width: 100%; box-sizing: border-box; padding: 8px; margin: 4px 0 12px; }
+    button { padding: 10px 16px; margin: 4px 0; }
+    .row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+    #web_result { font-weight: bold; margin-top: 12px; min-height: 1.2em; }
+    section { border-top: 1px solid #888; margin-top: 16px; padding-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1 id="web_title" data-i18n="title">Web Playground</h1>
+
+  <form id="web_form">
+    <label for="web_input" data-i18n="nameLabel">Your name</label>
+    <input id="web_input" name="name" type="text" autocomplete="off" aria-label="Your name">
+    <div class="row">
+      <input id="web_checkbox" type="checkbox" name="agree">
+      <label for="web_checkbox" data-i18n="agreeLabel">I agree</label>
+    </div>
+    <button id="web_submit" type="submit" data-i18n="submit">Submit form</button>
+  </form>
+
+  <button id="web_button" type="button" data-i18n="sendButton">Send to app</button>
+  <div id="web_result" role="status" aria-live="polite"></div>
+
+  <p><a id="web_link" href="#web_section" data-i18n="link">Jump to section</a></p>
+
+  <section id="web_section">
+    <h2 data-i18n="sectionTitle">Section</h2>
+    <p id="web_native_message" data-i18n="noNative">No message from the app yet.</p>
+  </section>
+
+  <script>
+    var strings = {
+      en: { title: 'Web Playground', nameLabel: 'Your name', agreeLabel: 'I agree', submit: 'Submit form',
+            sendButton: 'Send to app', link: 'Jump to section', sectionTitle: 'Section',
+            noNative: 'No message from the app yet.', submitted: 'Submitted: ', agreed: 'agreed', notAgreed: 'not agreed',
+            sent: 'Sent to app: ', fromApp: 'From app: ', emptyName: 'Name is required' },
+      de: { title: 'Web-Spielwiese', nameLabel: 'Dein Name', agreeLabel: 'Ich stimme zu', submit: 'Formular senden',
+            sendButton: 'An App senden', link: 'Zum Abschnitt springen', sectionTitle: 'Abschnitt',
+            noNative: 'Noch keine Nachricht von der App.', submitted: 'Gesendet: ', agreed: 'zugestimmt', notAgreed: 'nicht zugestimmt',
+            sent: 'An App gesendet: ', fromApp: 'Von der App: ', emptyName: 'Name ist erforderlich' }
+    };
+    var lang = 'en';
+    function t(key) { return (strings[lang] || strings.en)[key]; }
+    function setLanguage(code) {
+      lang = strings[code] ? code : 'en';
+      document.documentElement.lang = lang;
+      document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    }
+    function postToNative(text) {
+      if (window.AndroidBridge) { window.AndroidBridge.postMessage(text); }
+      else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.bridge) {
+        window.webkit.messageHandlers.bridge.postMessage(text);
+      }
+    }
+    function receiveFromNative(text) {
+      document.getElementById('web_native_message').textContent = t('fromApp') + text;
+    }
+    document.getElementById('web_form').addEventListener('submit', function (event) {
+      event.preventDefault();
+      var name = document.getElementById('web_input').value.trim();
+      var agreed = document.getElementById('web_checkbox').checked;
+      var result = document.getElementById('web_result');
+      if (!name) { result.textContent = t('emptyName'); return; }
+      result.textContent = t('submitted') + name + ' (' + (agreed ? t('agreed') : t('notAgreed')) + ')';
+      postToNative('form:' + name + ':' + agreed);
+    });
+    document.getElementById('web_button').addEventListener('click', function () {
+      var name = document.getElementById('web_input').value.trim() || 'web';
+      document.getElementById('web_result').textContent = t('sent') + name;
+      postToNative('button:' + name);
+    });
+  </script>
+</body>
+</html>

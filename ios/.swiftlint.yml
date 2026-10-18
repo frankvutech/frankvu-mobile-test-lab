@@ -1,0 +1,26 @@
+included:
+  - MobileTestPlayground
+  - MobileTestPlaygroundTests
+  - MobileTestPlaygroundUITests
+excluded:
+  - MobileTestPlayground/Resources
+line_length:
+  warning: 140
+  error: 180
+identifier_name:
+  min_length: 2
+  excluded: [id, x, y, dx, dy, ok]
+type_body_length:
+  warning: 400
+file_length:
+  warning: 600
+function_body_length:
+  warning: 80
+# SwiftUI bodies are long declarative trees; logic lives in view models, which these still guard.
+type_name:
+  max_length: 50
+opt_in_rules:
+  - empty_count
+  - first_where
+  - sorted_first_last
+  - redundant_nil_coalescing

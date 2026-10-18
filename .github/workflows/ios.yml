@@ -1,0 +1,91 @@
+name: iOS
+
+on:
+  push:
+    branches: [main]
+    paths: ["ios/**", "shared/**", "tools/**", ".github/workflows/ios.yml"]
+  pull_request:
+    paths: ["ios/**", "shared/**", "tools/**", ".github/workflows/ios.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build, unit tests, XCUITest
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      PROJECT: ios/MobileTestPlayground.xcodeproj
+      SCHEME: MobileTestPlayground
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select the newest installed Xcode
+        run: |
+          XCODE=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+
+      - name: Generated files are up to date
+        run: |
+          python3 tools/generate_strings.py --check
+          python3 tools/generate_test_ids.py --check
+
+      - name: Regenerate the Xcode project from project.yml
+        run: |
+          brew install xcodegen swiftlint || true
+          cd ios && xcodegen generate
+
+      - name: SwiftLint
+        run: cd ios && swiftlint lint --strict
+
+      - name: Pick a simulator
+        id: sim
+        run: |
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for r,l in d.items() if 'iOS' in r for x in l if x['name'].startswith('iPhone')))")
+          echo "udid=$DEVICE" >> "$GITHUB_OUTPUT"
+
+      # BackendUITests and LiveBackendTests need a running backend; macOS runners have no Docker,
+      # so the backend runs from its JAR with the default embedded H2 database.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Start backend
+        run: |
+          cd backend && ./gradlew --no-daemon buildFatJar -x test
+          nohup java -jar build/libs/backend.jar > backend.log 2>&1 &
+          for i in $(seq 1 60); do curl -fsS http://localhost:8080/ready && break; sleep 2; done
+
+      - name: Build for testing
+        run: |
+          xcodebuild build-for-testing -project "$PROJECT" -scheme "$SCHEME" \
+            -destination "id=${{ steps.sim.outputs.udid }}" -derivedDataPath build/DerivedData
+
+      - name: Unit tests
+        env:
+          # TEST_RUNNER_ variables are passed to the test process in the simulator.
+          TEST_RUNNER_PLAYGROUND_BACKEND_URL: http://localhost:8080
+        run: |
+          xcodebuild test-without-building -project "$PROJECT" -scheme "$SCHEME" \
+            -destination "id=${{ steps.sim.outputs.udid }}" -derivedDataPath build/DerivedData \
+            -only-testing:MobileTestPlaygroundTests -resultBundlePath build/UnitTests.xcresult
+
+      - name: XCUITest
+        run: |
+          xcodebuild test-without-building -project "$PROJECT" -scheme "$SCHEME" \
+            -destination "id=${{ steps.sim.outputs.udid }}" -derivedDataPath build/DerivedData \
+            -only-testing:MobileTestPlaygroundUITests -resultBundlePath build/UITests.xcresult
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-results
+          path: |
+            build/*.xcresult
+            build/DerivedData/Build/Products/Debug-iphonesimulator/*.app
+          if-no-files-found: ignore

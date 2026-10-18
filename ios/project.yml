@@ -1,0 +1,104 @@
+# XcodeGen spec. The generated MobileTestPlayground.xcodeproj is committed so the project opens
+# without XcodeGen; regenerate after adding files with `xcodegen generate` (or `make ios-project`).
+name: MobileTestPlayground
+options:
+  bundleIdPrefix: com.mobiletestplayground
+  deploymentTarget:
+    iOS: "17.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+targets:
+  MobileTestPlayground:
+    type: application
+    platform: iOS
+    sources:
+      - path: MobileTestPlayground
+      - path: ../shared/web/playground.html
+        buildPhase: resources
+    info:
+      path: MobileTestPlayground/Info.plist
+      properties:
+        CFBundleDisplayName: Mobile Test Playground
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, de]
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        CFBundleURLTypes:
+          - CFBundleURLName: com.mobiletestplayground.deeplink
+            CFBundleURLSchemes: [mtp]
+        # The backend API. The simulator reaches a backend on the Mac at localhost; a physical device
+        # needs the Mac's LAN address (set in Test Mode). USE_BACKEND_BY_DEFAULT=NO starts in offline mode.
+        API_BASE_URL: http://localhost:8080
+        USE_BACKEND_BY_DEFAULT: true
+        # Plain HTTP only to local-network hosts (localhost, .local names, LAN IP addresses) for the
+        # development backend; everything else keeps App Transport Security.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        NSLocalNetworkUsageDescription: Connects to the Mobile Test Playground development backend on your local network.
+        NSCameraUsageDescription: The Permissions scenario demonstrates the camera permission flow. No photos are taken.
+        NSPhotoLibraryUsageDescription: The Permissions scenario demonstrates the photo library permission flow.
+        NSLocationWhenInUseUsageDescription: The Permissions scenario demonstrates the location permission flow. Location is not used.
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mobiletestplayground.app
+        TARGETED_DEVICE_FAMILY: "1,2"
+        GENERATE_INFOPLIST_FILE: NO
+        ENABLE_PREVIEWS: YES
+      configs:
+        # Test Mode (destructive reset tools) is compiled in for Debug only.
+        Debug:
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG TEST_MODE
+        Release:
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: ""
+    postCompileScripts:
+      - name: SwiftLint
+        basedOnDependencyAnalysis: false
+        script: |
+          if command -v swiftlint >/dev/null 2>&1; then
+            swiftlint lint --config "${SRCROOT}/.swiftlint.yml" --quiet
+          elif [ -x /opt/homebrew/bin/swiftlint ]; then
+            /opt/homebrew/bin/swiftlint lint --config "${SRCROOT}/.swiftlint.yml" --quiet
+          else
+            echo "warning: SwiftLint not installed"
+          fi
+  MobileTestPlaygroundTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [MobileTestPlaygroundTests]
+    dependencies:
+      - target: MobileTestPlayground
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.mobiletestplayground.tests
+  MobileTestPlaygroundUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [MobileTestPlaygroundUITests]
+    dependencies:
+      - target: MobileTestPlayground
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.mobiletestplayground.uitests
+        TEST_TARGET_NAME: MobileTestPlayground
+schemes:
+  MobileTestPlayground:
+    build:
+      targets:
+        MobileTestPlayground: all
+        MobileTestPlaygroundTests: [test]
+        MobileTestPlaygroundUITests: [test]
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - MobileTestPlaygroundTests
+        - MobileTestPlaygroundUITests

@@ -1,0 +1,24 @@
+# Android
+android/.gradle/
+android/**/build/
+android/local.properties
+android/.kotlin/
+*.iml
+.idea/
+captures/
+
+# iOS
+ios/build/
+ios/DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+*.xcresult
+
+# OS
+.DS_Store
+
+# Local environment overrides
+.env
+backend/data/
+api-tests/.venv/

@@ -1,0 +1,14 @@
+root = true
+
+[*.{kt,kts}]
+indent_size = 4
+max_line_length = 140
+# intellij_idea matches the Kotlin style guide and the IDE formatter; ktlint_official's
+# multiline-expression-wrapping fights idiomatic Compose code.
+ktlint_code_style = intellij_idea
+ktlint_function_naming_ignore_when_annotated_with = Composable
+# Composables legitimately take state plus one callback per user action.
+ktlint_standard_function-signature = disabled
+ktlint_standard_class-signature = disabled
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true

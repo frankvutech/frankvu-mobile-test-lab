@@ -1,0 +1,58 @@
+# Detekt configuration. Built on detekt's defaults; only intentional deviations appear here.
+
+build:
+  maxIssues: 0
+
+complexity:
+  LongMethod:
+    # Composable layout trees are long but flat; logic lives in ViewModels, which this still guards.
+    threshold: 150
+    ignoreAnnotated: ['Composable']
+  LongParameterList:
+    functionThreshold: 10
+    constructorThreshold: 10
+    ignoreAnnotated: ['Composable']
+  TooManyFunctions:
+    thresholdInFiles: 40
+    thresholdInClasses: 25
+    # TestTags is an intentional catalogue of identifiers.
+    thresholdInObjects: 200
+    thresholdInInterfaces: 20
+    ignoreAnnotatedFunctions: ['Composable']
+  CyclomaticComplexMethod:
+    threshold: 18
+    ignoreAnnotated: ['Composable']
+  LargeClass:
+    threshold: 700
+
+style:
+  MagicNumber:
+    # Layout dimensions and seeded data are inherently numeric.
+    ignoreAnnotated: ['Composable']
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreNumbers: ['-1', '0', '1', '2', '3', '100']
+    ignoreEnums: true
+  MaxLineLength:
+    maxLineLength: 140
+  ReturnCount:
+    max: 6
+  ForbiddenComment:
+    active: true
+    comments: ['FIXME:', 'STOPSHIP:', 'TODO:']
+  UnusedPrivateMember:
+    active: true
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable', 'Test']
+  TopLevelPropertyNaming:
+    constantPattern: '[A-Za-z][_A-Za-z0-9]*'
+  MatchingDeclarationName:
+    active: false
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+  SwallowedException:
+    active: false

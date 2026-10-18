@@ -1,0 +1,72 @@
+# Local services and reproducible Android builds. iOS cannot be built in Docker (macOS + Xcode only).
+#
+#   docker compose up --build -d backend          # PostgreSQL + backend API on http://localhost:8080
+#   pytest api-tests                              # API automation against it
+#   docker compose down                           # stop (add -v to drop the database volume)
+#
+#   docker compose build android                  # Android build image
+#   docker compose run --rm android               # Android quality gate + debug APK
+#
+# Override values with a .env file (see .env.example). Defaults are local-development values only.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-playground}
+      POSTGRES_USER: ${POSTGRES_USER:-playground}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-playground-local-only}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend/Dockerfile
+    image: mobile-test-playground-backend:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    environment:
+      PORT: "8080"
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-playground}
+      DATABASE_USER: ${POSTGRES_USER:-playground}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-playground-local-only}
+      JWT_SECRET: ${JWT_SECRET:-local-development-only-secret-change-me}
+      TEST_SUPPORT_ENABLED: ${TEST_SUPPORT_ENABLED:-true}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/ready"]
+      interval: 5s
+      timeout: 3s
+      start_period: 20s
+      retries: 12
+
+  android:
+    build:
+      context: .
+      dockerfile: docker/android/Dockerfile
+    image: mobile-test-playground-android:latest
+    platform: linux/amd64
+    working_dir: /workspace/android
+    volumes:
+      # The repository is mounted (not copied) so the APK and reports land on the host.
+      - .:/workspace
+      # The host's android/local.properties points at a host SDK path; shadow it with the container's.
+      - ./docker/android/local.properties:/workspace/android/local.properties:ro
+      # Gradle caches persist between runs in a named volume.
+      - gradle-cache:/home/builder/.gradle
+    environment:
+      ANDROID_HOME: /opt/android-sdk
+      ANDROID_SDK_ROOT: /opt/android-sdk
+    # 3 GB Gradle heap (gradle.properties) plus Kotlin/KSP/Lint workers.
+    mem_limit: 6g
+
+volumes:
+  gradle-cache:
+  postgres-data:
