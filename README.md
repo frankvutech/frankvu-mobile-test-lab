@@ -283,8 +283,8 @@ Xcode 27.1). "Not run" means not verified, not "failed".
 | SwiftLint | ✅ No violations |
 | GitHub Actions: Backend and API tests | ✅ Passed on GitHub (PostgreSQL + backend in Compose, backend tests, 81 API tests) |
 | GitHub Actions: iOS | ✅ Passed on GitHub (macOS runner: unit tests incl. live backend, 18 XCUITests) |
-| GitHub Actions: Android build and Docker jobs | ✅ Passed on GitHub (lint, unit tests, APKs; APK built inside the Docker image). One later Docker run failed on a corrupted build-tools download; the image now pre-installs it |
-| GitHub Actions: Android emulator job | ❌ Last GitHub run: 44/47 passed (all Compose and backend tests). 3 UIAutomator tests fail on CI only: after a valid login the screen stays on "Signing in". Passes 47/47 locally; root cause under investigation (failure dumps added) |
+| GitHub Actions: Android build and Docker jobs | ✅ Passed on GitHub (lint, unit tests, APKs; APK built inside the Docker image). The image now pre-installs build-tools 36 (an earlier run failed on a corrupted download of it) |
+| GitHub Actions: Android emulator job | ❌ Not green yet. Over three GitHub runs every test passed at least once, but each run had 2–5 timing failures on the slow software-rendered emulator (a missed 0.6 s loading window, a stale node, one run where login stayed on "Signing in"). The fixes for the last two (longer test login delay, stale-node retry) are not yet run on GitHub; 47/47 locally |
 
 ## Troubleshooting
 

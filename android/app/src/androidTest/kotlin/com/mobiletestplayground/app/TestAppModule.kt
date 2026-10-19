@@ -16,8 +16,10 @@ import javax.inject.Named
 @Module
 @TestInstallIn(components = [SingletonComponent::class], replaces = [AppModule::class])
 object TestAppModule {
+    // The login loading state lasts 2 s instead of 0.6 s so a test can observe it even when a slow
+    // (software-rendered CI) emulator takes several hundred milliseconds per frame.
     @Provides
-    fun uiTiming() = UiTiming()
+    fun uiTiming() = UiTiming(loginDelayMillis = 2_000)
 
     @Provides
     fun backendConfig() = BackendConfig(defaultBaseUrl = BuildConfig.API_BASE_URL, useBackendByDefault = false)

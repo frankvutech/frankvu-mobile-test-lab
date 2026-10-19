@@ -42,7 +42,7 @@ class AuthenticationTest : PlaygroundComposeTest() {
     @Test
     fun loadingIndicatorAppearsWhileSigningIn() {
         robot.login("test@example.com", "Password123!")
-        robot.waitFor(TestTags.LOGIN_LOADING, timeoutMillis = 1_000)
+        robot.waitFor(TestTags.LOGIN_LOADING)
         robot.waitFor(TestTags.HOME_SCREEN)
     }
 

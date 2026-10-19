@@ -10,6 +10,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.BySelector
 import androidx.test.uiautomator.Direction
+import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.Until
@@ -109,6 +110,22 @@ class UiAutomatorTest {
         return id(tag)
     }
 
+    /**
+     * Scrolls to the element and clicks it. A list that is still settling after the scroll can replace
+     * the node between finding and clicking (StaleObjectException), so the element is found again.
+     */
+    private fun scrollToAndClick(tag: String) {
+        repeat(STALE_RETRIES) {
+            try {
+                scrollTo(tag).click()
+                return
+            } catch (e: StaleObjectException) {
+                Log.w(LOG_TAG, "Stale node for $tag, retrying", e)
+            }
+        }
+        scrollTo(tag).click()
+    }
+
     private fun string(resId: Int, vararg args: Any) = context.getString(resId, *args)
 
     /**
@@ -178,7 +195,7 @@ class UiAutomatorTest {
         launch()
         login("test@example.com", "Password123!")
         id(TestTags.HOME_SCREEN)
-        scrollTo(TestTags.scenario("controls")).click()
+        scrollToAndClick(TestTags.scenario("controls"))
         id(TestTags.CONTROLS_PRIMARY_BUTTON).click()
         id(TestTags.CONTROLS_PRIMARY_BUTTON).click()
 
@@ -195,7 +212,7 @@ class UiAutomatorTest {
         launch()
         login("test@example.com", "Password123!")
         id(TestTags.HOME_SCREEN)
-        scrollTo(TestTags.scenario("navigation")).click()
+        scrollToAndClick(TestTags.scenario("navigation"))
         id(TestTags.NAV_COUNTER_INCREMENT).click()
         id(TestTags.NAV_COUNTER_INCREMENT).click()
 
@@ -215,7 +232,7 @@ class UiAutomatorTest {
         launch()
         login("test@example.com", "Password123!")
         id(TestTags.HOME_SCREEN)
-        scrollTo(TestTags.scenario("webview")).click()
+        scrollToAndClick(TestTags.scenario("webview"))
         // The WebView is a classic View, so it has a namespaced View id rather than a bare test tag.
         find(By.res(packageName, "webview"), WEB_TIMEOUT)
 
@@ -239,7 +256,7 @@ class UiAutomatorTest {
         launch()
         login("test@example.com", "Password123!")
         id(TestTags.HOME_SCREEN)
-        scrollTo(TestTags.scenario("navigation")).click()
+        scrollToAndClick(TestTags.scenario("navigation"))
         id(TestTags.NAV_PUSH_DETAIL).click()
         id(TestTags.NAV_DETAIL_PUSH_NEXT).click()
         assertText(TestTags.NAV_DETAIL_LEVEL, string(R.string.navigation_level, 2))
@@ -258,6 +275,7 @@ class UiAutomatorTest {
         const val LOG_TAG = "UiAutomatorTest"
         const val LOG_CHUNK = 3_000
         const val MAX_FRAMES = 25
+        const val STALE_RETRIES = 2
         const val MAX_SCROLLS = 15
         const val SCROLL_PERCENT = 0.8f
         const val SWIPE_STEPS = 20
