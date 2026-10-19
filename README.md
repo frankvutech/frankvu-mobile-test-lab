@@ -284,7 +284,7 @@ Xcode 27.1). "Not run" means not verified, not "failed".
 | GitHub Actions: Backend and API tests | ✅ Passed on GitHub (PostgreSQL + backend in Compose, backend tests, 81 API tests) |
 | GitHub Actions: iOS | ✅ Passed on GitHub (macOS runner: unit tests incl. live backend, 18 XCUITests) |
 | GitHub Actions: Android build and Docker jobs | ✅ Passed on GitHub (lint, unit tests, APKs; APK built inside the Docker image). The image now pre-installs build-tools 36 (an earlier run failed on a corrupted download of it) |
-| GitHub Actions: Android emulator job | ❌ Not green yet. Every test has passed on GitHub at least once, but each run had 2–5 UIAutomator/timing failures on the slow software-rendered emulator. Latest fix (UIAutomator waits for the UI to settle before clicking and while scrolling) passes 47/47 locally; not yet run on GitHub |
+| GitHub Actions: Android emulator job | ❌ Not green yet. Last GitHub run: 46/47; the one failure is UIAutomator swipe-scrolling, which does not move the list on the software-rendered CI emulator. Scrolling now uses accessibility scroll actions; 47/47 locally, not yet run on GitHub |
 
 ## Troubleshooting
 

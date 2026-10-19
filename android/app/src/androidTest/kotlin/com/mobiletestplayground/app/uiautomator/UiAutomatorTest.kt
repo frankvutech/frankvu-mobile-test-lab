@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -115,13 +116,22 @@ class UiAutomatorTest {
     }
 
     /**
-     * Scrolls one step. The result of UiObject2.scroll is ignored: Compose lists do not send the scroll
-     * event it waits for, so it reports "cannot scroll" even when the list moved.
+     * Scrolls one step through the accessibility layer, as TalkBack does: ACTION_SCROLL_FORWARD or
+     * ACTION_SCROLL_BACKWARD on the first scrollable node. Swipe gestures were unreliable on the
+     * software-rendered CI emulator (the list did not move at all), and an accessibility action does not
+     * depend on touch timing. Falls back to a swipe when no scrollable node is exposed (right after
+     * rotation the tree may still be rebuilding).
      */
     private fun scroll(direction: Direction) {
-        val scrollable = device.findObject(By.scrollable(true))
+        val action = if (direction == Direction.DOWN) {
+            AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
+        } else {
+            AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
+        }
+        val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow
+        val scrollable = root?.let(::firstScrollable)
         if (scrollable != null) {
-            scrollable.scroll(direction, SCROLL_PERCENT)
+            scrollable.performAction(action)
             return
         }
         val (from, to) = if (direction == Direction.DOWN) 3 to 1 else 1 to 3
@@ -132,6 +142,16 @@ class UiAutomatorTest {
             device.displayHeight * to / 4,
             SWIPE_STEPS,
         )
+    }
+
+    private fun firstScrollable(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
+        val queue = ArrayDeque(listOf(root))
+        while (queue.isNotEmpty()) {
+            val node = queue.removeFirst()
+            if (node.isScrollable) return node
+            for (i in 0 until node.childCount) node.getChild(i)?.let(queue::addLast)
+        }
+        return null
     }
 
     /**
@@ -303,7 +323,6 @@ class UiAutomatorTest {
         const val STALE_RETRIES = 2
         const val IDLE_TIMEOUT = 3_000L
         const val MAX_SCROLLS = 15
-        const val SCROLL_PERCENT = 0.5f
         const val SWIPE_STEPS = 20
     }
 }
