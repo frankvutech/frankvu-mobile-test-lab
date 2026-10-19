@@ -80,7 +80,7 @@ Foundation and Observation. It complements, and does not replace, the simulator 
 
 | Workflow | Runner | Steps |
 |---|---|---|
-| `.github/workflows/android.yml` | ubuntu-latest | Generated-file check, ktlint, detekt, Android Lint, unit tests, debug + test APKs, artifacts; emulator job (API 34, KVM) with the backend started via Compose, running Compose UI, UIAutomator and backend integration tests; Docker job building the image and an APK inside it |
+| `.github/workflows/android.yml` | ubuntu-latest | Generated-file check, ktlint, detekt, Android Lint, unit tests, debug + test APKs, artifacts; emulator job (API 34, KVM) with the backend started via Compose, running Compose UI and backend integration tests; a separate non-blocking emulator job (4 cores, 4 GB RAM) for the UIAutomator tests, which are unreliable on the hosted emulator; Docker job building the image and an APK inside it |
 | `.github/workflows/ios.yml` | macos-15 | Select newest Xcode, generated-file check, XcodeGen, SwiftLint, start the backend JAR, build-for-testing, unit tests (incl. live backend), XCUITest, upload `.xcresult` and `.app` |
 | `.github/workflows/backend.yml` | ubuntu-latest | Compose up PostgreSQL + backend and wait for health, backend lint + tests, pytest API suite, reports, compose down |
 
