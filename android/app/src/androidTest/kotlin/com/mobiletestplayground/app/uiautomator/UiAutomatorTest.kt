@@ -82,32 +82,56 @@ class UiAutomatorTest {
 
     private fun launchDeepLink(link: String) = launch(Intent(Intent.ACTION_VIEW, Uri.parse(link)).setPackage(packageName))
 
-    private fun find(selector: BySelector, timeout: Long = TIMEOUT): UiObject2 =
+    /**
+     * Finds the element once the UI has settled. UIAutomator does not wait for the app the way Compose
+     * tests do: on a slow emulator a node can appear before its screen accepts input, and a click sent
+     * then is lost. Waiting for idle (no accessibility events for a moment) and finding the node again
+     * avoids that, and costs nothing noticeable on a fast device.
+     */
+    private fun find(selector: BySelector, timeout: Long = TIMEOUT): UiObject2 {
         assertNotNull(device.wait(Until.findObject(selector), timeout), "Not found: $selector")
+        device.waitForIdle(IDLE_TIMEOUT)
+        return assertNotNull(device.wait(Until.findObject(selector), timeout), "Not found after idle: $selector")
+    }
 
     private fun id(tag: String): UiObject2 = find(By.res(tag))
 
     /**
-     * Scrolls until the element is on screen. Uses the scrollable node when the accessibility tree
-     * exposes one, otherwise a plain swipe (right after rotation the tree may still be rebuilding).
+     * Scrolls until the element is on screen: down first, then back up. Uses the
+     * scrollable node when the accessibility tree exposes one, otherwise a plain swipe (right after
+     * rotation the tree may still be rebuilding). Waits for idle after each scroll so a slow device
+     * cannot scroll past the element before the tree shows it.
      */
     private fun scrollTo(tag: String): UiObject2 {
-        repeat(MAX_SCROLLS) {
-            device.findObject(By.res(tag))?.let { return it }
-            val scrollable = device.findObject(By.scrollable(true))
-            if (scrollable != null) {
-                scrollable.scroll(Direction.DOWN, SCROLL_PERCENT)
-            } else {
-                device.swipe(
-                    device.displayWidth / 2,
-                    device.displayHeight * 3 / 4,
-                    device.displayWidth / 2,
-                    device.displayHeight / 4,
-                    SWIPE_STEPS,
-                )
+        if (device.hasObject(By.res(tag))) return id(tag)
+        for (direction in listOf(Direction.DOWN, Direction.UP)) {
+            repeat(MAX_SCROLLS) {
+                scroll(direction)
+                device.waitForIdle(IDLE_TIMEOUT)
+                if (device.hasObject(By.res(tag))) return id(tag)
             }
         }
         return id(tag)
+    }
+
+    /**
+     * Scrolls one step. The result of UiObject2.scroll is ignored: Compose lists do not send the scroll
+     * event it waits for, so it reports "cannot scroll" even when the list moved.
+     */
+    private fun scroll(direction: Direction) {
+        val scrollable = device.findObject(By.scrollable(true))
+        if (scrollable != null) {
+            scrollable.scroll(direction, SCROLL_PERCENT)
+            return
+        }
+        val (from, to) = if (direction == Direction.DOWN) 3 to 1 else 1 to 3
+        device.swipe(
+            device.displayWidth / 2,
+            device.displayHeight * from / 4,
+            device.displayWidth / 2,
+            device.displayHeight * to / 4,
+            SWIPE_STEPS,
+        )
     }
 
     /**
@@ -233,8 +257,9 @@ class UiAutomatorTest {
         login("test@example.com", "Password123!")
         id(TestTags.HOME_SCREEN)
         scrollToAndClick(TestTags.scenario("webview"))
-        // The WebView is a classic View, so it has a namespaced View id rather than a bare test tag.
-        find(By.res(packageName, "webview"), WEB_TIMEOUT)
+        // The WebView is a classic View, so it has a namespaced View id rather than a bare test tag. Only
+        // its presence is checked: once the page loads, Chromium's own tree can take the node's place.
+        assertTrue(device.wait(Until.hasObject(By.res(packageName, "webview")), WEB_TIMEOUT), "WebView not shown")
 
         // Inside the WebView, Chromium exposes HTML ids as resource ids.
         val input = find(By.res("web_input"), WEB_TIMEOUT)
@@ -276,8 +301,9 @@ class UiAutomatorTest {
         const val LOG_CHUNK = 3_000
         const val MAX_FRAMES = 25
         const val STALE_RETRIES = 2
+        const val IDLE_TIMEOUT = 3_000L
         const val MAX_SCROLLS = 15
-        const val SCROLL_PERCENT = 0.8f
+        const val SCROLL_PERCENT = 0.5f
         const val SWIPE_STEPS = 20
     }
 }
