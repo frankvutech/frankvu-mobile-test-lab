@@ -47,6 +47,8 @@ import com.mobiletestplayground.core.ui.TestTags
 import com.mobiletestplayground.core.ui.components.ErrorText
 import com.mobiletestplayground.core.ui.components.LabeledCheckbox
 import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
+import com.mobiletestplayground.core.ui.components.screenScrollTag
+import com.mobiletestplayground.core.ui.components.textTag
 
 @Composable
 fun LoginScreen(
@@ -111,10 +113,15 @@ private fun LoginContent(
             .fillMaxSize()
             .imePadding()
             .verticalScroll(rememberScrollState())
+            .testTag(screenScrollTag())
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(stringResource(R.string.login_heading), style = MaterialTheme.typography.headlineSmall)
+        Text(
+            stringResource(R.string.login_heading),
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.testTag(textTag(R.string.login_heading)),
+        )
         if (showRedirectMessage) {
             Text(
                 stringResource(R.string.login_redirect_message),
@@ -200,7 +207,11 @@ private fun LoginContent(
                     .testTag(TestTags.LOGIN_CONTINUE_AS_GUEST),
             ) { Text(stringResource(R.string.login_continue_as_guest)) }
         }
-        Text(stringResource(R.string.login_hint), style = MaterialTheme.typography.bodySmall)
+        Text(
+            stringResource(R.string.login_hint),
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.testTag(textTag(R.string.login_hint)),
+        )
     }
 }
 

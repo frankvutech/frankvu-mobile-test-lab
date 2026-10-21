@@ -10,6 +10,22 @@ package com.mobiletestplayground.core.ui
  */
 @Suppress("TooManyFunctions") // A catalogue: one accessor per repeated element.
 object TestTags {
+    // --- Derived IDs (rules shared with iOS) ---
+    /** Static text from the shared string table (headings, labels, help text): `<string key>_text`. */
+    fun text(key: String) = "${key}_text"
+
+    /** A screen's scroll container: the screen ID without `_screen`, plus `_scroll`. */
+    fun scroll(screen: String) = "${screen}_scroll"
+
+    /** The label of a label/value row, next to the value it describes. */
+    fun label(valueTag: String) = "${valueTag}_label"
+
+    /** The visible title inside a tagged, non-clickable container (a card, a section, a target). */
+    fun title(containerTag: String) = "${containerTag}_title"
+
+    /** The body text inside a tagged container (a dialog, a sheet). */
+    fun message(containerTag: String) = "${containerTag}_message"
+
     // --- App chrome ---
     const val TOP_BAR_BACK = "top_bar_back"
     const val TOP_BAR_TITLE = "top_bar_title"
@@ -160,6 +176,7 @@ object TestTags {
     const val FORM_PASSWORD = "form_password"
     const val FORM_AGE = "form_age"
     const val FORM_COUNTRY = "form_country"
+    const val FORM_COUNTRY_MENU = "form_country_menu"
     fun formCountryOption(code: String) = "form_country_option_$code"
     const val FORM_PLAN = "form_plan"
     fun formPlan(plan: String) = "form_plan_$plan"
@@ -214,6 +231,7 @@ object TestTags {
 
     // --- Lists ---
     const val LISTS_SCREEN = "lists_screen"
+    const val LISTS_TABS = "lists_tabs"
     const val LISTS_TAB_STATIC = "lists_tab_static"
     const val LISTS_TAB_DYNAMIC = "lists_tab_dynamic"
     const val LISTS_TAB_INFINITE = "lists_tab_infinite"
@@ -225,6 +243,7 @@ object TestTags {
     const val DYNAMIC_LIST_INPUT = "dynamic_list_input"
     const val DYNAMIC_LIST_ADD = "dynamic_list_add"
     const val DYNAMIC_LIST_SEARCH = "dynamic_list_search"
+    const val DYNAMIC_LIST_SORT = "dynamic_list_sort"
     fun dynamicListSort(order: String) = "dynamic_list_sort_$order"
     const val DYNAMIC_LIST_COUNT = "dynamic_list_count"
     const val DYNAMIC_LIST_EMPTY = "dynamic_list_empty"
@@ -284,6 +303,7 @@ object TestTags {
     const val NAV_MODAL_SCREEN = "nav_modal_screen"
     const val NAV_MODAL_CLOSE = "nav_modal_close"
     const val NAV_NESTED_SCREEN = "nav_nested_screen"
+    const val NAV_NESTED_TABS = "nav_nested_tabs"
     fun navNestedTab(tab: String) = "nav_nested_tab_$tab"
     const val NAV_NESTED_CONTENT = "nav_nested_content"
 
@@ -310,6 +330,8 @@ object TestTags {
     const val BOTTOM_SHEET = "bottom_sheet"
     const val BOTTOM_SHEET_CLOSE = "bottom_sheet_close"
     const val SNACKBAR = "snackbar"
+    const val SNACKBAR_MESSAGE = "snackbar_message"
+    const val SNACKBAR_ACTION = "snackbar_action"
 
     // --- Permissions ---
     const val PERMISSIONS_SCREEN = "permissions_screen"

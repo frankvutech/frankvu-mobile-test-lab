@@ -62,7 +62,7 @@ fun ListsScreen(onBack: () -> Unit) {
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            PrimaryTabRow(selectedTabIndex = tab) {
+            PrimaryTabRow(selectedTabIndex = tab, modifier = Modifier.testTag(TestTags.LISTS_TABS)) {
                 listOf(
                     R.string.lists_static to TestTags.LISTS_TAB_STATIC,
                     R.string.lists_dynamic to TestTags.LISTS_TAB_DYNAMIC,
@@ -125,7 +125,7 @@ private fun DynamicList(viewModel: DynamicListViewModel = hiltViewModel()) {
             singleLine = true,
             modifier = Modifier.fillMaxWidth().testTag(TestTags.DYNAMIC_LIST_SEARCH),
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag(TestTags.DYNAMIC_LIST_SORT)) {
             SortOrder.entries.forEach { order ->
                 FilterChip(
                     selected = state.sort == order,
@@ -145,7 +145,7 @@ private fun DynamicList(viewModel: DynamicListViewModel = hiltViewModel()) {
         LazyColumn(Modifier.fillMaxSize().testTag(TestTags.DYNAMIC_LIST)) {
             items(state.items, key = { it.id }) { item ->
                 ListItem(
-                    headlineContent = { Text(item.title) },
+                    headlineContent = { Text(item.title, Modifier.testTag(TestTags.title(TestTags.dynamicListItem(item.id)))) },
                     trailingContent = {
                         Row {
                             IconButton(onClick = { editing = item }, modifier = Modifier.testTag(TestTags.dynamicListEdit(item.id))) {

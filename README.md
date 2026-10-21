@@ -282,6 +282,8 @@ Xcode 27.1). "Not run" means not verified, not "failed".
 | iOS app and test bundles build in Xcode | ✅ `xcodebuild build-for-testing`, iPhone 17 simulator |
 | iOS unit tests (25, incl. live backend) | ✅ Passed in the simulator, and on the macOS host via SwiftPM |
 | XCUITest (18, incl. `BackendUITests` against the live backend) | ✅ 18/18 passed in the simulator |
+| Automation-ID coverage: every element on every screen and transient state has an ID (`IdentifierCoverageTest`, 4 tests; `IdentifierCoverageUITests`, 4 tests) | ✅ All 4 pass on an API 34 emulator, and all 4 pass on the iPhone 17 Pro simulator (iOS 26.5). Exceptions that cannot take an ID are listed in [automation.md](docs/automation.md#identifier-coverage) |
+| Full suites after the ID work | Android: 50/51 instrumented (3 backend tests skipped without a backend; the one failure is the cold-boot WebView scroll issue fixed separately in [PR #2](https://github.com/frankvutech/frankvu-mobile-test-lab/pull/2)). iOS: 21/21 XCUITest (`BackendUITests` not run) and 25 unit tests (live backend skipped) |
 | SwiftLint | ✅ No violations |
 | GitHub Actions: Backend and API tests | ✅ Passed on GitHub (PostgreSQL + backend in Compose, backend tests, 81 API tests) |
 | GitHub Actions: iOS | ✅ Passed on GitHub (macOS runner: unit tests incl. live backend, 18 XCUITests) |

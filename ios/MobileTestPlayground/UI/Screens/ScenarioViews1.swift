@@ -14,8 +14,8 @@ struct AuthScenarioView: View {
                 valueID: TestIDs.authUserRole)
             ValueRow(label: L10n.tr("login_remember_me"), value: L10n.tr(session?.rememberMe == true ? "value_on" : "value_off"),
                      valueID: TestIDs.authRememberState)
-            Section(L10n.tr("auth_authorization")) {
-                Text(L10n.tr("auth_authorization_hint")).font(.footnote)
+            Section(key: "auth_authorization") {
+                KeyText("auth_authorization_hint").font(.footnote)
                 Button(L10n.tr("admin_title")) { router.homePath.append(.admin) }.accessibilityIdentifier(TestIDs.authOpenAdmin)
                 if session != nil {
                     Button(L10n.tr("profile_logout"), role: .destructive) { Task { await env.auth.endSession() } }
@@ -23,7 +23,7 @@ struct AuthScenarioView: View {
                 }
             }
         }
-        .navigationTitle(L10n.tr("scenario_auth"))
+        .screenTitle(L10n.tr("scenario_auth"))
         .screenRoot(TestIDs.authScreen)
     }
 }
@@ -94,11 +94,13 @@ struct FormsView: View {
                 error(.password, TestIDs.formPassword)
             }
             field("form_age", TestIDs.formAge, .age, text: $model.input.age, keyboard: .numberPad)
-            Picker(L10n.tr("form_country"), selection: $model.input.country) {
+            Picker(selection: $model.input.country) {
                 Text(L10n.tr("value_not_set")).tag(String?.none)
                 ForEach(FormsViewModel.countries, id: \.self) { code in
                     Text(L10n.tr("country_\(code)")).tag(String?.some(code)).accessibilityIdentifier(TestIDs.formCountryOption(code))
                 }
+            } label: {
+                KeyText("form_country")
             }
             .accessibilityIdentifier(TestIDs.formCountry)
             error(.country, TestIDs.formCountry)
@@ -119,7 +121,7 @@ struct FormsView: View {
                 .accessibilityLabel(L10n.tr("form_satisfaction"))
                 .accessibilityIdentifier(TestIDs.formSatisfaction)
 
-            DatePicker(L10n.tr("form_pick_date"), selection: $pickedDate, displayedComponents: .date)
+            DatePicker(selection: $pickedDate, displayedComponents: .date) { KeyText("form_pick_date") }
                 .accessibilityIdentifier(TestIDs.formDate)
                 .onChange(of: pickedDate) { _, value in model.input.date = DateMath.isoFormatter.string(from: value) }
             HStack {
@@ -129,7 +131,7 @@ struct FormsView: View {
                 Text(model.input.date ?? L10n.tr("value_not_set")).accessibilityIdentifier(TestIDs.formDateValue)
             }
             error(.date, TestIDs.formDate)
-            DatePicker(L10n.tr("form_pick_time"), selection: $pickedTime, displayedComponents: .hourAndMinute)
+            DatePicker(selection: $pickedTime, displayedComponents: .hourAndMinute) { KeyText("form_pick_time") }
                 .accessibilityIdentifier(TestIDs.formTime)
                 .onChange(of: pickedTime) { _, value in model.input.time = Self.timeString(value) }
             ValueRow(label: L10n.tr("form_pick_time"), value: model.input.time ?? L10n.tr("value_not_set"), valueID: TestIDs.formTimeValue)
@@ -157,7 +159,7 @@ struct FormsView: View {
                 SecondaryButton(title: L10n.tr("form_reset"), id: TestIDs.formReset) { model.reset() }
             }
         }
-        .navigationTitle(L10n.tr("scenario_forms"))
+        .screenTitle(L10n.tr("scenario_forms"))
         .scrollDismissesKeyboard(.interactively)
         .screenRoot(TestIDs.formsScreen)
     }
@@ -200,14 +202,14 @@ struct ControlsView: View {
 
     var body: some View {
         Form {
-            Section(L10n.tr("controls_buttons")) {
+            Section(key: "controls_buttons") {
                 PrimaryButton(title: L10n.tr("controls_primary"), id: TestIDs.controlsPrimaryButton) { tapCount += 1 }
                 SecondaryButton(title: L10n.tr("controls_secondary"), id: TestIDs.controlsSecondaryButton) { tapCount += 1 }
                 Button(L10n.tr("controls_disabled")) { tapCount += 1 }.disabled(true)
                     .accessibilityIdentifier(TestIDs.controlsDisabledButton)
                 ValueRow(label: L10n.tr("controls_tap_count"), value: "\(tapCount)", valueID: TestIDs.controlsTapCount)
             }
-            Section(L10n.tr("controls_toggles")) {
+            Section(key: "controls_toggles") {
                 Button { toggled.toggle() } label: { Image(systemName: toggled ? "heart.fill" : "heart") }
                     .accessibilityLabel(L10n.tr("controls_favorite"))
                     .accessibilityValue(onOff(toggled))
@@ -223,7 +225,7 @@ struct ControlsView: View {
                 Toggle(L10n.tr("controls_switch"), isOn: $switchOn).accessibilityIdentifier(TestIDs.controlsSwitch)
                 ValueRow(label: L10n.tr("controls_switch"), value: onOff(switchOn), valueID: TestIDs.controlsSwitchState)
             }
-            Section(L10n.tr("controls_size")) {
+            Section(key: "controls_size") {
                 ForEach(["small", "medium", "large"], id: \.self) { size in
                     Button { radio = size } label: {
                         Label(L10n.tr("size_\(size)"), systemImage: radio == size ? "largecircle.fill.circle" : "circle")
@@ -233,28 +235,31 @@ struct ControlsView: View {
                 }
                 ValueRow(label: L10n.tr("controls_size"), value: L10n.tr("size_\(radio)"), valueID: TestIDs.controlsRadioState)
             }
-            Section(L10n.tr("controls_slider")) {
+            Section(key: "controls_slider") {
                 Slider(value: $slider, in: 0...100, step: 10)
                     .accessibilityLabel(L10n.tr("controls_slider"))
                     .accessibilityIdentifier(TestIDs.controlsSlider)
                 ValueRow(label: L10n.tr("controls_slider"), value: "\(Int(slider))", valueID: TestIDs.controlsSliderValue)
             }
-            Section(L10n.tr("controls_stepper")) {
+            Section(key: "controls_stepper") {
                 Stepper(value: $stepper, in: 0...10) {
                     Text("\(stepper)").accessibilityIdentifier(TestIDs.controlsStepperValue)
                 }
                 .accessibilityIdentifier(TestIDs.controlsStepper)
             }
-            Section(L10n.tr("controls_progress")) {
-                ProgressView(value: Double(progress), total: 100).accessibilityIdentifier(TestIDs.controlsProgress)
+            Section(key: "controls_progress") {
+                // Combined: otherwise the identifier lands on a wrapper and the indicator itself has none.
+                ProgressView(value: Double(progress), total: 100)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier(TestIDs.controlsProgress)
                 ValueRow(label: L10n.tr("controls_progress"), value: "\(progress)%", valueID: TestIDs.controlsProgressValue)
                 Button(L10n.tr("controls_progress_advance")) { progress = min(progress + 25, 100) }
                     .accessibilityIdentifier(TestIDs.controlsProgressAdvance)
                 Button(L10n.tr("action_reset")) { progress = 0 }.accessibilityIdentifier(TestIDs.controlsProgressReset)
-                ProgressView().accessibilityIdentifier(TestIDs.controlsSpinner)
+                ProgressView().accessibilityElement(children: .combine).accessibilityIdentifier(TestIDs.controlsSpinner)
             }
         }
-        .navigationTitle(L10n.tr("scenario_controls"))
+        .screenTitle(L10n.tr("scenario_controls"))
         .screenRoot(TestIDs.controlsScreen)
     }
 }
@@ -272,6 +277,7 @@ struct ListsView: View {
                 Text(L10n.tr("lists_infinite")).tag(2).accessibilityIdentifier(TestIDs.listsTabInfinite)
             }
             .pickerStyle(.segmented)
+            .accessibilityIdentifier(TestIDs.listsTabs)
             .padding()
             switch tab {
             case 0: StaticListView()
@@ -279,7 +285,7 @@ struct ListsView: View {
             default: InfiniteListView()
             }
         }
-        .navigationTitle(L10n.tr("scenario_lists"))
+        .screenTitle(L10n.tr("scenario_lists"))
         .screenRoot(TestIDs.listsScreen)
     }
 }
@@ -330,13 +336,14 @@ struct DynamicListView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+                .accessibilityIdentifier(TestIDs.dynamicListSort)
                 Text(L10n.tr("lists_count", items.count, env.dynamicItems.items.count)).accessibilityIdentifier(TestIDs.dynamicListCount)
                 if items.isEmpty { Text(L10n.tr("lists_empty")).accessibilityIdentifier(TestIDs.dynamicListEmpty) }
             }
             Section {
                 ForEach(items) { item in
                     HStack {
-                        Text(item.title)
+                        Text(item.title).accessibilityIdentifier(TestIDs.title(TestIDs.dynamicListItem(item.id)))
                         Spacer()
                         Button {
                             editTitle = item.title
@@ -469,131 +476,7 @@ struct ScrollingView: View {
                 .accessibilityIdentifier(TestIDs.scrollContainer)
             }
         }
-        .navigationTitle(L10n.tr("scenario_scrolling"))
+        .screenTitle(L10n.tr("scenario_scrolling"))
         .screenRoot(TestIDs.scrollingScreen)
-    }
-}
-
-// MARK: - Gestures
-
-struct GesturesView: View {
-    @SceneStorage("gestures.last") private var lastGesture = ""
-    @SceneStorage("gestures.zoom") private var zoom = 1.0
-    @SceneStorage("gestures.dropped") private var dropped = false
-    @State private var pan = CGSize.zero
-    @State private var drag = CGSize.zero
-    @State private var dropFrame = CGRect.zero
-
-    private func record(_ type: GestureType) { lastGesture = type.rawValue }
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text(lastGesture.isEmpty ? L10n.tr("gesture_none") : L10n.tr("gesture_detected", lastGesture))
-                    .font(.headline)
-                    .accessibilityIdentifier(TestIDs.gestureResult)
-                HStack {
-                    target("gesture_tap", TestIDs.gestureTapTarget).onTapGesture { record(.tap) }
-                        .accessibilityAction { record(.tap) }
-                    target("gesture_double_tap", TestIDs.gestureDoubleTapTarget).onTapGesture(count: 2) { record(.doubleTap) }
-                        .accessibilityAction { record(.doubleTap) }
-                    target("gesture_long_press", TestIDs.gestureLongPressTarget).onLongPressGesture { record(.longPress) }
-                        .accessibilityAction(named: L10n.tr("gesture_long_press")) { record(.longPress) }
-                }
-                Text(L10n.tr("gesture_swipe")).font(.headline)
-                Text(L10n.tr("gesture_swipe_here"))
-                    .frame(maxWidth: .infinity, minHeight: 140)
-                    .background(Color.secondary.opacity(0.15))
-                    .gesture(DragGesture(minimumDistance: 20).onEnded { value in
-                        if let type = SwipeClassifier.classify(dx: value.translation.width, dy: value.translation.height, threshold: 48) {
-                            record(type)
-                        }
-                    })
-                    .accessibilityElement()
-                    .accessibilityLabel(L10n.tr("gesture_swipe_here"))
-                    .accessibilityAction(named: L10n.tr("gesture_swipe_left")) { record(.swipeLeft) }
-                    .accessibilityAction(named: L10n.tr("gesture_swipe_right")) { record(.swipeRight) }
-                    .accessibilityIdentifier(TestIDs.gestureSwipeArea)
-
-                Text(L10n.tr("gesture_drag_and_drop")).font(.headline)
-                Text(L10n.tr(dropped ? "gesture_dropped" : "gesture_not_dropped")).accessibilityIdentifier(TestIDs.gestureDropStatus)
-                HStack {
-                    Text(L10n.tr("gesture_drag_me"))
-                        .frame(width: 72, height: 72)
-                        .background(Color.orange)
-                        .offset(drag)
-                        .gesture(DragGesture(coordinateSpace: .named("gestures")).onChanged { drag = $0.translation }.onEnded { value in
-                            dropped = dropFrame.contains(value.location)
-                            record(.dragAndDrop)
-                            drag = .zero
-                        })
-                        .accessibilityIdentifier(TestIDs.gestureDragItem)
-                    Spacer()
-                    Text(L10n.tr("gesture_drop_here"))
-                        .frame(width: 110, height: 110)
-                        .border(Color.accentColor, width: 2)
-                        .background(GeometryReader { geo in
-                            Color.clear.onAppear { dropFrame = geo.frame(in: .named("gestures")) }
-                        })
-                        .accessibilityIdentifier(TestIDs.gestureDropZone)
-                }
-
-                Text(L10n.tr("gesture_zoom")).font(.headline)
-                ValueRow(label: L10n.tr("gesture_zoom"), value: L10n.tr("gesture_zoom_level", ZoomRules.label(zoom)),
-                    valueID: TestIDs.gestureZoomLevel)
-                Text(L10n.tr("gesture_pinch_here"))
-                    .scaleEffect(zoom)
-                    .frame(maxWidth: .infinity, minHeight: 140)
-                    .clipped()
-                    .border(Color.secondary)
-                    .gesture(MagnifyGesture().onChanged { value in
-                        zoom = ZoomRules.clamp(value.magnification)
-                        record(.pinch)
-                    })
-                    .accessibilityIdentifier(TestIDs.gestureZoomArea)
-                HStack {
-                    Button(L10n.tr("gesture_zoom_in")) { zoom = ZoomRules.clamp(zoom + 1); record(.pinch) }
-                        .accessibilityIdentifier(TestIDs.gestureZoomIn)
-                    Button(L10n.tr("gesture_zoom_out")) { zoom = ZoomRules.clamp(zoom - 1); record(.pinch) }
-                        .accessibilityIdentifier(TestIDs.gestureZoomOut)
-                }
-
-                Text(L10n.tr("gesture_pan")).font(.headline)
-                ValueRow(label: L10n.tr("gesture_pan"), value: "\(Int(pan.width)), \(Int(pan.height))", valueID: TestIDs.gesturePanOffset)
-                ZStack(alignment: .topLeading) {
-                    Color.secondary.opacity(0.1)
-                    Rectangle().fill(Color.teal).frame(width: 40, height: 40).offset(pan)
-                }
-                .frame(height: 140)
-                .clipped()
-                .gesture(DragGesture().onChanged { value in
-                    pan = value.translation
-                    record(.pan)
-                })
-                .accessibilityIdentifier(TestIDs.gesturePanArea)
-                Button(L10n.tr("action_reset")) {
-                    lastGesture = ""
-                    zoom = 1
-                    dropped = false
-                    pan = .zero
-                }
-                .accessibilityIdentifier(TestIDs.gestureReset)
-            }
-            .padding()
-        }
-        .coordinateSpace(name: "gestures")
-        .navigationTitle(L10n.tr("scenario_gestures"))
-        .screenRoot(TestIDs.gesturesScreen)
-    }
-
-    private func target(_ key: String, _ id: String) -> some View {
-        Text(L10n.tr(key))
-            .font(.caption)
-            .frame(width: 96, height: 96)
-            .background(Color.accentColor.opacity(0.2))
-            .accessibilityElement()
-            .accessibilityLabel(L10n.tr(key))
-            .accessibilityAddTraits(.isButton)
-            .accessibilityIdentifier(id)
     }
 }

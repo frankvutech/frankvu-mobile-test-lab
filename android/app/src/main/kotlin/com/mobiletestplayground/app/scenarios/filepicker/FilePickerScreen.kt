@@ -25,6 +25,7 @@ import com.mobiletestplayground.core.ui.TestTags
 import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
 import com.mobiletestplayground.core.ui.components.ScreenColumn
 import com.mobiletestplayground.core.ui.components.ValueRow
+import com.mobiletestplayground.core.ui.components.textTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -77,7 +78,7 @@ fun FilePickerScreen(onBack: () -> Unit, viewModel: FilePickerViewModel = hiltVi
 
     PlaygroundScaffold(stringResource(R.string.scenario_file_picker), TestTags.FILE_PICKER_SCREEN, onBack) { padding ->
         ScreenColumn(padding) {
-            Text(stringResource(R.string.file_picker_intro))
+            Text(stringResource(R.string.file_picker_intro), modifier = Modifier.testTag(textTag(R.string.file_picker_intro)))
             Button(
                 onClick = { imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                 modifier = Modifier.fillMaxWidth().testTag(TestTags.FILE_PICKER_PICK_IMAGE),

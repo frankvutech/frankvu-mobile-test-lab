@@ -47,7 +47,7 @@ struct HomeView: View {
             }
         }
         .accessibilityIdentifier(TestIDs.homeScenarioList)
-        .navigationTitle(L10n.tr("app_name"))
+        .screenTitle(L10n.tr("app_name"))
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button { router.show(tab: .cart) } label: { Image(systemName: "cart") }
@@ -135,7 +135,7 @@ struct CatalogView: View {
             }
         }
         .accessibilityIdentifier(TestIDs.catalogList)
-        .navigationTitle(L10n.tr("nav_catalog"))
+        .screenTitle(L10n.tr("nav_catalog"))
         .task { await load() }
         .screenRoot(TestIDs.catalogScreen)
     }
@@ -169,7 +169,7 @@ struct ProductDetailView: View {
                 LoadStateView(state: state, loadingID: TestIDs.productLoading, errorID: TestIDs.productError) { Task { await load() } }
             }
         }
-        .navigationTitle(state.value?.name ?? L10n.tr("nav_catalog"))
+        .screenTitle(state.value?.name ?? L10n.tr("nav_catalog"))
         .task { await load() }
         .screenRoot(TestIDs.productDetailScreen)
     }
@@ -189,7 +189,7 @@ struct CartView: View {
     var body: some View {
         Form {
             if let order {
-                Section(L10n.tr("cart_order_placed")) {
+                Section(key: "cart_order_placed") {
                     Text(order.number).accessibilityIdentifier(TestIDs.orderNumber)
                     Text("\(L10n.tr("cart_total")): \(PriceFormatter.format(order.total))")
                 }
@@ -203,7 +203,7 @@ struct CartView: View {
                 Section {
                     ForEach(env.cart.lines) { line in
                         HStack {
-                            Text(line.product.name)
+                            Text(line.product.name).accessibilityIdentifier(TestIDs.title(TestIDs.cartItem(line.product.id)))
                             Spacer()
                             Text("× \(line.quantity)").accessibilityIdentifier(TestIDs.cartItemQuantity(line.product.id))
                             Button(role: .destructive) {
@@ -232,7 +232,7 @@ struct CartView: View {
                 }
             }
         }
-        .navigationTitle(L10n.tr("nav_cart"))
+        .screenTitle(L10n.tr("nav_cart"))
         // In backend mode the cart lives on the server: fetch it whenever the screen appears.
         .task { error = await env.cart.refresh() }
         .screenRoot(TestIDs.cartScreen)
@@ -261,7 +261,7 @@ struct ProfileView: View {
                     .accessibilityIdentifier(TestIDs.profileLogout)
             }
         }
-        .navigationTitle(L10n.tr("nav_profile"))
+        .screenTitle(L10n.tr("nav_profile"))
         .screenRoot(TestIDs.profileScreen)
     }
 }
@@ -271,11 +271,11 @@ struct AdminDashboardView: View {
 
     var body: some View {
         Form {
-            Text(L10n.tr("admin_intro"))
+            KeyText("admin_intro")
             Button(L10n.tr("admin_products")) { router.homePath.append(.adminProducts) }.accessibilityIdentifier(TestIDs.adminOpenProducts)
             Button(L10n.tr("admin_users")) { router.homePath.append(.adminUsers) }.accessibilityIdentifier(TestIDs.adminOpenUsers)
         }
-        .navigationTitle(L10n.tr("admin_title"))
+        .screenTitle(L10n.tr("admin_title"))
         .screenRoot(TestIDs.adminDashboard)
     }
 }
@@ -285,7 +285,7 @@ struct AdminProductsView: View {
         List(SeedData.products) { product in
             ValueRow(label: product.name, value: PriceFormatter.format(product.priceCents), valueID: TestIDs.adminProduct(product.id))
         }
-        .navigationTitle(L10n.tr("admin_products"))
+        .screenTitle(L10n.tr("admin_products"))
         .screenRoot(TestIDs.adminProducts)
     }
 }
@@ -296,7 +296,7 @@ struct AdminUsersView: View {
             ValueRow(label: account.user.email, value: account.locked ? L10n.tr("admin_user_locked") : account.user.role.rawValue,
                      valueID: TestIDs.adminUser(account.user.id))
         }
-        .navigationTitle(L10n.tr("admin_users"))
+        .screenTitle(L10n.tr("admin_users"))
         .screenRoot(TestIDs.adminUsers)
     }
 }
@@ -312,7 +312,7 @@ struct AccessDeniedView: View {
             SecondaryButton(title: L10n.tr("action_go_back"), id: TestIDs.accessDeniedBack) { dismiss() }
         }
         .padding()
-        .navigationTitle(L10n.tr("access_denied_title"))
+        .screenTitle(L10n.tr("access_denied_title"))
         .screenRoot(TestIDs.accessDeniedScreen)
     }
 }
@@ -322,7 +322,7 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section(L10n.tr("settings_theme")) {
+            Section(key: "settings_theme") {
                 let theme = Binding(get: { env.preferences.theme }, set: { env.preferences.setTheme($0) })
                 Picker(L10n.tr("settings_theme"), selection: theme) {
                     ForEach(ThemeMode.allCases) { mode in
@@ -333,7 +333,7 @@ struct SettingsView: View {
                 .pickerStyle(.inline)
                 .labelsHidden()
             }
-            Section(L10n.tr("scenario_test_mode")) {
+            Section(key: "scenario_test_mode") {
                 if AppEnvironment.testModeEnabled {
                     NavigationLink(L10n.tr("settings_open_test_mode")) { TestModeView() }.accessibilityIdentifier(TestIDs.settingsTestMode)
                 } else {
@@ -348,7 +348,7 @@ struct SettingsView: View {
                      value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "",
                      valueID: TestIDs.settingsVersion)
         }
-        .navigationTitle(L10n.tr("settings_title"))
+        .screenTitle(L10n.tr("settings_title"))
         .screenRoot(TestIDs.settingsScreen)
     }
 }
@@ -377,9 +377,10 @@ struct BackendSection: View {
             .accessibilityIdentifier(TestIDs.testModeBackendUrlSave)
             ValueRow(label: L10n.tr("test_mode_backend_active_url"), value: env.backend.baseURL, valueID: TestIDs.testModeBackendActiveUrl)
         } header: {
-            Text(L10n.tr("test_mode_backend"))
+            KeyText("test_mode_backend")
         } footer: {
             Text(L10n.tr("test_mode_backend_hint") + " " + L10n.tr("test_mode_backend_url_hint"))
+                .accessibilityIdentifier(TestIDs.text("test_mode_backend_hint"))
         }
         .onAppear { url = env.testMode.settings.backendURLOverride ?? "" }
     }
@@ -392,14 +393,14 @@ struct TestModeView: View {
     var body: some View {
         Form {
             if AppEnvironment.testModeEnabled {
-                Text(L10n.tr("test_mode_warning")).font(.footnote)
+                KeyText("test_mode_warning").font(.footnote)
                 BackendSection()
-                Section(L10n.tr("test_mode_simulation")) {
+                Section(key: "test_mode_simulation") {
                     toggle("test_mode_network_error", TestIDs.testModeNetworkError, \.simulateNetworkError)
                     toggle("test_mode_slow_network", TestIDs.testModeSlowNetwork, \.simulateSlowNetwork)
                     toggle("test_mode_auth_required", TestIDs.testModeAuthRequired, \.authenticationRequired)
                 }
-                Section(L10n.tr("test_mode_data")) {
+                Section(key: "test_mode_data") {
                     action("test_mode_generate_data", TestIDs.testModeGenerateData, done: "test_mode_done_generate_data") {
                         env.dynamicItems.generate()
                     }
@@ -420,7 +421,7 @@ struct TestModeView: View {
                 Text(L10n.tr("test_mode_disabled")).accessibilityIdentifier(TestIDs.testModeDisabled)
             }
         }
-        .navigationTitle(L10n.tr("scenario_test_mode"))
+        .screenTitle(L10n.tr("scenario_test_mode"))
         .screenRoot(TestIDs.testModeScreen)
     }
 

@@ -55,6 +55,7 @@ import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
 import com.mobiletestplayground.core.ui.components.ScreenColumn
 import com.mobiletestplayground.core.ui.components.SectionTitle
 import com.mobiletestplayground.core.ui.components.ValueRow
+import com.mobiletestplayground.core.ui.components.textTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -87,7 +88,7 @@ fun SettingsScreen(onBack: () -> Unit, onTestMode: () -> Unit, viewModel: Settin
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     PlaygroundScaffold(stringResource(R.string.settings_title), TestTags.SETTINGS_SCREEN, onBack) { padding ->
         ScreenColumn(padding) {
-            SectionTitle(stringResource(R.string.settings_theme))
+            SectionTitle(R.string.settings_theme)
             androidx.compose.foundation.layout.Column(Modifier.selectableGroup()) {
                 ThemeMode.entries.forEach { mode ->
                     Row(
@@ -105,7 +106,7 @@ fun SettingsScreen(onBack: () -> Unit, onTestMode: () -> Unit, viewModel: Settin
                     }
                 }
             }
-            SectionTitle(stringResource(R.string.scenario_test_mode))
+            SectionTitle(R.string.scenario_test_mode)
             if (viewModel.testModeEnabled) {
                 Button(onClick = onTestMode, modifier = Modifier.fillMaxWidth().testTag(TestTags.SETTINGS_TEST_MODE)) {
                     Text(stringResource(R.string.settings_open_test_mode))
@@ -130,8 +131,12 @@ fun SettingsScreen(onBack: () -> Unit, onTestMode: () -> Unit, viewModel: Settin
 
 @Composable
 private fun BackendSection(settings: TestModeSettings, viewModel: TestModeViewModel) {
-    SectionTitle(stringResource(R.string.test_mode_backend))
-    Text(stringResource(R.string.test_mode_backend_hint), style = MaterialTheme.typography.bodySmall)
+    SectionTitle(R.string.test_mode_backend)
+    Text(
+        stringResource(R.string.test_mode_backend_hint),
+        style = MaterialTheme.typography.bodySmall,
+        modifier = Modifier.testTag(textTag(R.string.test_mode_backend_hint)),
+    )
     LabeledSwitch(
         stringResource(R.string.test_mode_use_backend),
         settings.useBackend,
@@ -239,9 +244,14 @@ fun TestModeScreen(onBack: () -> Unit, viewModel: TestModeViewModel = hiltViewMo
                 Text(stringResource(R.string.test_mode_disabled), modifier = Modifier.testTag(TestTags.TEST_MODE_DISABLED))
                 return@ScreenColumn
             }
-            Card { Text(stringResource(R.string.test_mode_warning), modifier = Modifier.padding(16.dp)) }
+            Card {
+                Text(
+                    stringResource(R.string.test_mode_warning),
+                    modifier = Modifier.padding(16.dp).testTag(textTag(R.string.test_mode_warning)),
+                )
+            }
             BackendSection(settings, viewModel)
-            SectionTitle(stringResource(R.string.test_mode_simulation))
+            SectionTitle(R.string.test_mode_simulation)
             LabeledSwitch(
                 stringResource(R.string.test_mode_network_error),
                 settings.simulateNetworkError,
@@ -260,7 +270,7 @@ fun TestModeScreen(onBack: () -> Unit, viewModel: TestModeViewModel = hiltViewMo
                 { value -> viewModel.update { it.copy(authenticationRequired = value) } },
                 TestTags.TEST_MODE_AUTH_REQUIRED,
             )
-            SectionTitle(stringResource(R.string.test_mode_data))
+            SectionTitle(R.string.test_mode_data)
             ActionButton(R.string.test_mode_generate_data, TestTags.TEST_MODE_GENERATE_DATA) {
                 viewModel.perform(TestModeAction.GENERATE_DATA)
             }

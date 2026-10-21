@@ -102,7 +102,7 @@ fun ControlsScreen(onBack: () -> Unit, viewModel: ControlsViewModel = hiltViewMo
 
     PlaygroundScaffold(stringResource(R.string.scenario_controls), TestTags.CONTROLS_SCREEN, onBack) { padding ->
         ScreenColumn(padding) {
-            SectionTitle(stringResource(R.string.controls_buttons))
+            SectionTitle(R.string.controls_buttons)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = viewModel::tap, modifier = Modifier.testTag(TestTags.CONTROLS_PRIMARY_BUTTON)) {
                     Text(stringResource(R.string.controls_primary))
@@ -116,7 +116,7 @@ fun ControlsScreen(onBack: () -> Unit, viewModel: ControlsViewModel = hiltViewMo
             }
             ValueRow(stringResource(R.string.controls_tap_count), tapCount.toString(), TestTags.CONTROLS_TAP_COUNT)
 
-            SectionTitle(stringResource(R.string.controls_toggles))
+            SectionTitle(R.string.controls_toggles)
             val favoriteDescription = stringResource(R.string.controls_favorite)
             val toggleState = if (toggled) on else off
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -139,7 +139,7 @@ fun ControlsScreen(onBack: () -> Unit, viewModel: ControlsViewModel = hiltViewMo
             LabeledSwitch(stringResource(R.string.controls_switch), switch, viewModel::setSwitch, TestTags.CONTROLS_SWITCH)
             ValueRow(stringResource(R.string.controls_switch), if (switch) on else off, TestTags.CONTROLS_SWITCH_STATE)
 
-            SectionTitle(stringResource(R.string.controls_size))
+            SectionTitle(R.string.controls_size)
             Column(Modifier.selectableGroup()) {
                 ControlsViewModel.SIZES.forEach { size ->
                     Row(
@@ -157,7 +157,7 @@ fun ControlsScreen(onBack: () -> Unit, viewModel: ControlsViewModel = hiltViewMo
             }
             ValueRow(stringResource(R.string.controls_size), stringResource(sizeLabel(radio)), TestTags.CONTROLS_RADIO_STATE)
 
-            SectionTitle(stringResource(R.string.controls_slider))
+            SectionTitle(R.string.controls_slider)
             val sliderDescription = stringResource(R.string.controls_slider)
             Slider(
                 value = slider.toFloat(),
@@ -170,7 +170,7 @@ fun ControlsScreen(onBack: () -> Unit, viewModel: ControlsViewModel = hiltViewMo
             )
             ValueRow(sliderDescription, slider.toString(), TestTags.CONTROLS_SLIDER_VALUE)
 
-            SectionTitle(stringResource(R.string.controls_stepper))
+            SectionTitle(R.string.controls_stepper)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 FilledIconButton(
                     onClick = { viewModel.step(-1) },
@@ -185,7 +185,7 @@ fun ControlsScreen(onBack: () -> Unit, viewModel: ControlsViewModel = hiltViewMo
                 ) { Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.controls_increment)) }
             }
 
-            SectionTitle(stringResource(R.string.controls_progress))
+            SectionTitle(R.string.controls_progress)
             LinearProgressIndicator(
                 progress = { progress / 100f },
                 modifier = Modifier

@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.mobiletestplayground.app.R
 import com.mobiletestplayground.core.ui.TestTags
 import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
+import com.mobiletestplayground.core.ui.components.textTag
 import kotlinx.coroutines.launch
 
 private const val SECTION_COUNT = 40
@@ -75,7 +76,10 @@ fun ScrollingScreen(onBack: () -> Unit) {
                     ) {
                         items(CARD_COUNT) { index ->
                             Card(Modifier.size(120.dp, 80.dp).testTag(TestTags.scrollCard(index + 1))) {
-                                Text(stringResource(R.string.scrolling_card, index + 1), modifier = Modifier.padding(12.dp))
+                                Text(
+                                    stringResource(R.string.scrolling_card, index + 1),
+                                    modifier = Modifier.testTag(TestTags.title(TestTags.scrollCard(index + 1))).padding(12.dp),
+                                )
                             }
                         }
                     }
@@ -85,7 +89,7 @@ fun ScrollingScreen(onBack: () -> Unit) {
                         Text(
                             stringResource(R.string.scrolling_section, index + 1),
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(16.dp).testTag(TestTags.title(TestTags.scrollSection(index + 1))),
                         )
                     }
                 }

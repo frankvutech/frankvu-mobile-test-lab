@@ -122,10 +122,10 @@ struct LoginView: View {
                         .accessibilityIdentifier(TestIDs.loginContinueAsGuest)
                 }
             } footer: {
-                Text(L10n.tr("login_hint"))
+                KeyText("login_hint")
             }
         }
-        .navigationTitle(L10n.tr("login_title"))
+        .screenTitle(L10n.tr("login_title"))
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink { SettingsView() } label: { Image(systemName: "gearshape") }
@@ -173,7 +173,7 @@ struct RegisterView: View {
                     .accessibilityIdentifier(TestIDs.registerEmail)
                 SecureField(L10n.tr("login_password"), text: $password).accessibilityIdentifier(TestIDs.registerPassword)
                 SecureField(L10n.tr("register_confirm_password"), text: $confirm).accessibilityIdentifier(TestIDs.registerConfirmPassword)
-                Text(L10n.tr("password_rules")).font(.footnote)
+                KeyText("password_rules").font(.footnote)
                 if let error { ErrorLabel(text: message(error), id: TestIDs.registerError) }
                 Button(L10n.tr("register_button")) {
                     Task { @MainActor in
@@ -186,7 +186,7 @@ struct RegisterView: View {
                 .accessibilityIdentifier(TestIDs.registerButton)
             }
         }
-        .navigationTitle(L10n.tr("register_title"))
+        .screenTitle(L10n.tr("register_title"))
         .screenRoot(TestIDs.registerScreen)
     }
 
@@ -210,7 +210,7 @@ struct ForgotPasswordView: View {
 
     var body: some View {
         Form {
-            Text(L10n.tr("forgot_instructions"))
+            KeyText("forgot_instructions")
             TextField(L10n.tr("login_email"), text: $email)
                 .keyboardType(.emailAddress)
                 .textInputAutocapitalization(.never)
@@ -229,7 +229,7 @@ struct ForgotPasswordView: View {
                 .accessibilityIdentifier(TestIDs.forgotSubmit)
             }
         }
-        .navigationTitle(L10n.tr("forgot_title"))
+        .screenTitle(L10n.tr("forgot_title"))
         .screenRoot(TestIDs.forgotScreen)
     }
 }
@@ -252,7 +252,7 @@ struct ResetPasswordView: View {
             if done {
                 Text(L10n.tr("reset_success")).accessibilityIdentifier(TestIDs.resetSuccess)
             } else {
-                Text(L10n.tr("reset_instructions"))
+                KeyText("reset_instructions")
                 TextField(L10n.tr("login_email"), text: $email)
                     .textInputAutocapitalization(.never)
                     .accessibilityIdentifier(TestIDs.resetEmail)
@@ -271,7 +271,7 @@ struct ResetPasswordView: View {
                 .accessibilityIdentifier(TestIDs.resetSubmit)
             }
         }
-        .navigationTitle(L10n.tr("reset_title"))
+        .screenTitle(L10n.tr("reset_title"))
         .screenRoot(TestIDs.resetScreen)
     }
 

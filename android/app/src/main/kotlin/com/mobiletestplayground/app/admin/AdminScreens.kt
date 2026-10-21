@@ -28,6 +28,7 @@ import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
 import com.mobiletestplayground.core.ui.components.ScreenColumn
 import com.mobiletestplayground.core.ui.components.SectionTitle
 import com.mobiletestplayground.core.ui.components.ValueRow
+import com.mobiletestplayground.core.ui.components.textTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,7 +41,7 @@ import javax.inject.Inject
 fun AdminDashboardScreen(onBack: () -> Unit, onProducts: () -> Unit, onUsers: () -> Unit) {
     PlaygroundScaffold(stringResource(R.string.admin_title), TestTags.ADMIN_DASHBOARD, onBack) { padding ->
         ScreenColumn(padding) {
-            Text(stringResource(R.string.admin_intro))
+            Text(stringResource(R.string.admin_intro), modifier = Modifier.testTag(textTag(R.string.admin_intro)))
             Button(onClick = onProducts, modifier = Modifier.fillMaxWidth().testTag(TestTags.ADMIN_OPEN_PRODUCTS)) {
                 Text(stringResource(R.string.admin_products))
             }
@@ -93,7 +94,7 @@ fun AccessDeniedScreen(onBack: () -> Unit) {
     PlaygroundScaffold(stringResource(R.string.access_denied_title), TestTags.ACCESS_DENIED_SCREEN, onBack) { padding ->
         ScreenColumn(padding) {
             Icon(Icons.Filled.Block, contentDescription = null)
-            SectionTitle(stringResource(R.string.access_denied_title))
+            SectionTitle(R.string.access_denied_title)
             Text(
                 stringResource(R.string.access_denied_message),
                 color = MaterialTheme.colorScheme.error,

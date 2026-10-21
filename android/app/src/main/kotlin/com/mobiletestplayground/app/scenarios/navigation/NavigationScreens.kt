@@ -37,6 +37,7 @@ import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
 import com.mobiletestplayground.core.ui.components.ScreenColumn
 import com.mobiletestplayground.core.ui.components.SectionTitle
 import com.mobiletestplayground.core.ui.components.ValueRow
+import com.mobiletestplayground.core.ui.components.textTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -69,7 +70,7 @@ fun NavigationRootScreen(
     val counter by viewModel.counter.collectAsStateWithLifecycle()
     PlaygroundScaffold(stringResource(R.string.scenario_navigation), TestTags.NAVIGATION_SCREEN, onBack) { padding ->
         ScreenColumn(padding) {
-            Text(stringResource(R.string.navigation_intro))
+            Text(stringResource(R.string.navigation_intro), modifier = Modifier.testTag(textTag(R.string.navigation_intro)))
             Button(onClick = onPushDetail, modifier = Modifier.fillMaxWidth().testTag(TestTags.NAV_PUSH_DETAIL)) {
                 Text(stringResource(R.string.navigation_push))
             }
@@ -79,8 +80,12 @@ fun NavigationRootScreen(
             Button(onClick = onOpenNested, modifier = Modifier.fillMaxWidth().testTag(TestTags.NAV_OPEN_NESTED)) {
                 Text(stringResource(R.string.navigation_nested))
             }
-            SectionTitle(stringResource(R.string.navigation_state))
-            Text(stringResource(R.string.navigation_state_hint), style = MaterialTheme.typography.bodySmall)
+            SectionTitle(R.string.navigation_state)
+            Text(
+                stringResource(R.string.navigation_state_hint),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.testTag(textTag(R.string.navigation_state_hint)),
+            )
             ValueRow(stringResource(R.string.navigation_counter), counter.toString(), TestTags.NAV_COUNTER_VALUE)
             OutlinedButton(onClick = viewModel::increment, modifier = Modifier.testTag(TestTags.NAV_COUNTER_INCREMENT)) {
                 Text(stringResource(R.string.navigation_increment))
@@ -116,8 +121,8 @@ fun NavigationModalScreen(onClose: () -> Unit) {
             IconButton(onClick = onClose, modifier = Modifier.testTag(TestTags.NAV_MODAL_CLOSE)) {
                 Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_close))
             }
-            SectionTitle(stringResource(R.string.navigation_modal_title))
-            Text(stringResource(R.string.navigation_modal_body))
+            SectionTitle(R.string.navigation_modal_title)
+            Text(stringResource(R.string.navigation_modal_body), modifier = Modifier.testTag(textTag(R.string.navigation_modal_body)))
         }
     }
 }
@@ -133,7 +138,10 @@ fun NavigationNestedScreen(onBack: () -> Unit) {
     val current = entry?.destination?.route ?: nestedTabs.first()
     PlaygroundScaffold(stringResource(R.string.navigation_nested), TestTags.NAV_NESTED_SCREEN, onBack) { padding ->
         Column(Modifier.padding(padding)) {
-            PrimaryTabRow(selectedTabIndex = nestedTabs.indexOf(current).coerceAtLeast(0)) {
+            PrimaryTabRow(
+                selectedTabIndex = nestedTabs.indexOf(current).coerceAtLeast(0),
+                modifier = Modifier.testTag(TestTags.NAV_NESTED_TABS),
+            ) {
                 nestedTabs.forEach { tab ->
                     Tab(
                         selected = current == tab,

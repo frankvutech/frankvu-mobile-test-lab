@@ -25,6 +25,7 @@ import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
 import com.mobiletestplayground.core.ui.components.ScreenColumn
 import com.mobiletestplayground.core.ui.components.SectionTitle
 import com.mobiletestplayground.core.ui.components.ValueRow
+import com.mobiletestplayground.core.ui.components.textTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -69,17 +70,21 @@ fun TestDataScreen(onBack: () -> Unit, viewModel: TestDataViewModel = hiltViewMo
     val status by viewModel.status.collectAsStateWithLifecycle()
     PlaygroundScaffold(stringResource(R.string.scenario_test_data), TestTags.TEST_DATA_SCREEN, onBack) { padding ->
         ScreenColumn(padding) {
-            SectionTitle(stringResource(R.string.test_data_users))
+            SectionTitle(R.string.test_data_users)
             SeedData.accounts.forEach { account ->
                 val status = if (account.locked) stringResource(R.string.admin_user_locked) else account.user.role.name
                 ValueRow(account.user.email, status, TestTags.testDataUser(account.user.id))
             }
-            SectionTitle(stringResource(R.string.test_data_products))
+            SectionTitle(R.string.test_data_products)
             SeedData.products.take(PRODUCT_PREVIEW).forEach { product ->
                 ValueRow(product.name, PriceFormatter.format(product.priceCents), TestTags.testDataProduct(product.id))
             }
-            Text(stringResource(R.string.test_data_more_products, SeedData.products.size), style = MaterialTheme.typography.bodySmall)
-            SectionTitle(stringResource(R.string.lists_dynamic))
+            Text(
+                stringResource(R.string.test_data_more_products, SeedData.products.size),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.testTag(textTag(R.string.test_data_more_products)),
+            )
+            SectionTitle(R.string.lists_dynamic)
             ValueRow(stringResource(R.string.test_data_item_count), itemCount.toString(), TestTags.TEST_DATA_ITEM_COUNT)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = viewModel::generate, modifier = Modifier.testTag(TestTags.TEST_DATA_GENERATE)) {

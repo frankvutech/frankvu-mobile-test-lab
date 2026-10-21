@@ -25,6 +25,7 @@ import com.mobiletestplayground.core.ui.TestTags
 import com.mobiletestplayground.core.ui.components.ErrorText
 import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
 import com.mobiletestplayground.core.ui.components.ScreenColumn
+import com.mobiletestplayground.core.ui.components.textTag
 
 @Composable
 private fun TextInput(
@@ -72,7 +73,11 @@ fun RegisterScreen(onBack: () -> Unit, onRegistered: () -> Unit, viewModel: Regi
                 TestTags.REGISTER_CONFIRM_PASSWORD,
                 secret = true,
             )
-            Text(stringResource(R.string.password_rules), style = MaterialTheme.typography.bodySmall)
+            Text(
+                stringResource(R.string.password_rules),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.testTag(textTag(R.string.password_rules)),
+            )
             state.error?.let { ErrorText(it.text(), TestTags.REGISTER_ERROR) }
             Button(
                 onClick = viewModel::submit,
@@ -89,7 +94,7 @@ fun ForgotPasswordScreen(onBack: () -> Unit, onContinue: (String) -> Unit, viewM
     val state by viewModel.state.collectAsStateWithLifecycle()
     PlaygroundScaffold(stringResource(R.string.forgot_title), TestTags.FORGOT_SCREEN, onBack) { padding ->
         ScreenColumn(padding, Modifier.imePadding()) {
-            Text(stringResource(R.string.forgot_instructions))
+            Text(stringResource(R.string.forgot_instructions), modifier = Modifier.testTag(textTag(R.string.forgot_instructions)))
             TextInput(state.email, viewModel::onEmailChange, R.string.login_email, TestTags.FORGOT_EMAIL, KeyboardType.Email)
             if (state.invalidEmail) ErrorText(stringResource(R.string.login_error_invalid_email), TestTags.FORGOT_ERROR)
             if (state.submitted) {
@@ -141,7 +146,7 @@ fun ResetPasswordScreen(
                 ) { Text(stringResource(R.string.register_back_to_login)) }
                 return@ScreenColumn
             }
-            Text(stringResource(R.string.reset_instructions))
+            Text(stringResource(R.string.reset_instructions), modifier = Modifier.testTag(textTag(R.string.reset_instructions)))
             TextInput(state.email, viewModel::onEmailChange, R.string.login_email, TestTags.RESET_EMAIL, KeyboardType.Email)
             TextInput(state.code, viewModel::onCodeChange, R.string.reset_code, TestTags.RESET_CODE, KeyboardType.Number)
             TextInput(state.password, viewModel::onPasswordChange, R.string.reset_new_password, TestTags.RESET_PASSWORD, secret = true)
