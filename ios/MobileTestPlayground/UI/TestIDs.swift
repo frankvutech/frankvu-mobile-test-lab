@@ -323,6 +323,10 @@ enum TestIDs {
     static let notificationsSchedule = "notifications_schedule"
     static let notificationsStatus = "notifications_status"
 
+    static func text(_ key: String) -> String { "\(key)_text" }
+    static func scroll(_ screen: String) -> String { "\(screen)_scroll" }
+    static func label(_ valueTag: String) -> String { "\(valueTag)_label" }
+    static func title(_ containerTag: String) -> String { "\(containerTag)_title" }
     static func scenario(_ id: String) -> String { "scenario_\(id)" }
     static func product(_ productId: String) -> String { productId }
     static func productAddToCart(_ productId: String) -> String { "\(productId)_add_to_cart" }

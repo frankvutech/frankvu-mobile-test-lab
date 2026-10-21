@@ -39,6 +39,7 @@ import com.mobiletestplayground.core.domain.misc.PermissionStatusResolver
 import com.mobiletestplayground.core.ui.TestTags
 import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
 import com.mobiletestplayground.core.ui.components.ScreenColumn
+import com.mobiletestplayground.core.ui.components.textTag
 
 /** A runtime permission the scenario can request. [id] is used in `permission_<id>_*` tags. */
 enum class PlaygroundPermission(val id: String, val label: Int) {
@@ -115,7 +116,7 @@ fun PermissionsScreen(onBack: () -> Unit) {
 
     PlaygroundScaffold(stringResource(R.string.scenario_permissions), TestTags.PERMISSIONS_SCREEN, onBack) { padding ->
         ScreenColumn(padding) {
-            Text(stringResource(R.string.permissions_intro))
+            Text(stringResource(R.string.permissions_intro), modifier = Modifier.testTag(textTag(R.string.permissions_intro)))
             PlaygroundPermission.entries.forEach { permission ->
                 PermissionCard(permission, refresh) { refresh++ }
             }

@@ -52,6 +52,7 @@ import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
 import com.mobiletestplayground.core.ui.components.ScreenColumn
 import com.mobiletestplayground.core.ui.components.SectionTitle
 import com.mobiletestplayground.core.ui.components.ValueRow
+import com.mobiletestplayground.core.ui.components.textTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -137,13 +138,13 @@ fun GesturesScreen(onBack: () -> Unit, viewModel: GesturesViewModel = hiltViewMo
                 )
             }
 
-            SectionTitle(stringResource(R.string.gesture_swipe))
+            SectionTitle(R.string.gesture_swipe)
             SwipeArea(onSwipe = viewModel::record)
 
-            SectionTitle(stringResource(R.string.gesture_drag_and_drop))
+            SectionTitle(R.string.gesture_drag_and_drop)
             DragAndDrop(dropped = dropped, onDrop = viewModel::drop)
 
-            SectionTitle(stringResource(R.string.gesture_zoom))
+            SectionTitle(R.string.gesture_zoom)
             ValueRow(
                 stringResource(R.string.gesture_zoom),
                 stringResource(R.string.gesture_zoom_level, ZoomRules.label(zoom)),
@@ -163,7 +164,7 @@ fun GesturesScreen(onBack: () -> Unit, viewModel: GesturesViewModel = hiltViewMo
             ) {
                 Text(
                     stringResource(R.string.gesture_pinch_here),
-                    modifier = Modifier.graphicsLayer {
+                    modifier = Modifier.testTag(TestTags.title(TestTags.GESTURE_ZOOM_AREA)).graphicsLayer {
                         scaleX = zoom
                         scaleY = zoom
                     },
@@ -178,7 +179,7 @@ fun GesturesScreen(onBack: () -> Unit, viewModel: GesturesViewModel = hiltViewMo
                 }
             }
 
-            SectionTitle(stringResource(R.string.gesture_pan))
+            SectionTitle(R.string.gesture_pan)
             ValueRow(stringResource(R.string.gesture_pan), "$panX, $panY", TestTags.GESTURE_PAN_OFFSET)
             Box(
                 Modifier
@@ -218,7 +219,7 @@ private fun GestureTarget(label: String, tag: String, modifier: Modifier = Modif
             .testTag(tag),
         contentAlignment = Alignment.Center,
     ) {
-        Text(label, style = MaterialTheme.typography.labelMedium)
+        Text(label, style = MaterialTheme.typography.labelMedium, modifier = Modifier.testTag(TestTags.title(tag)))
     }
 }
 
@@ -251,7 +252,7 @@ private fun SwipeArea(onSwipe: (GestureType) -> Unit) {
             .testTag(TestTags.GESTURE_SWIPE_AREA),
         contentAlignment = Alignment.Center,
     ) {
-        Text(stringResource(R.string.gesture_swipe_here))
+        Text(stringResource(R.string.gesture_swipe_here), modifier = Modifier.testTag(TestTags.title(TestTags.GESTURE_SWIPE_AREA)))
     }
 }
 
@@ -288,7 +289,13 @@ private fun DragAndDrop(dropped: Boolean, onDrop: (Boolean) -> Unit) {
                 }
                 .testTag(TestTags.GESTURE_DRAG_ITEM),
             contentAlignment = Alignment.Center,
-        ) { Text(stringResource(R.string.gesture_drag_me), color = MaterialTheme.colorScheme.onTertiary) }
+        ) {
+            Text(
+                stringResource(R.string.gesture_drag_me),
+                color = MaterialTheme.colorScheme.onTertiary,
+                modifier = Modifier.testTag(TestTags.title(TestTags.GESTURE_DRAG_ITEM)),
+            )
+        }
         Box(
             Modifier
                 .size(110.dp)
@@ -296,6 +303,6 @@ private fun DragAndDrop(dropped: Boolean, onDrop: (Boolean) -> Unit) {
                 .onGloballyPositioned { zoneBounds = it.boundsInRoot() }
                 .testTag(TestTags.GESTURE_DROP_ZONE),
             contentAlignment = Alignment.Center,
-        ) { Text(stringResource(R.string.gesture_drop_here)) }
+        ) { Text(stringResource(R.string.gesture_drop_here), modifier = Modifier.testTag(TestTags.title(TestTags.GESTURE_DROP_ZONE))) }
     }
 }

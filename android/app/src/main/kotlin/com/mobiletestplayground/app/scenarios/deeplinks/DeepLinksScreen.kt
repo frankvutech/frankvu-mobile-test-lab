@@ -22,6 +22,7 @@ import com.mobiletestplayground.core.ui.components.ErrorText
 import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
 import com.mobiletestplayground.core.ui.components.ScreenColumn
 import com.mobiletestplayground.core.ui.components.SectionTitle
+import com.mobiletestplayground.core.ui.components.textTag
 
 /** Example links, also documented in docs/automation.md with the matching adb and simctl commands. */
 val deepLinkExamples = listOf(
@@ -43,15 +44,15 @@ fun DeepLinksScreen(onBack: () -> Unit, onOpenRoute: (String) -> Unit) {
     var invalid by rememberSaveable { mutableStateOf(false) }
     PlaygroundScaffold(stringResource(R.string.scenario_deep_links), TestTags.DEEP_LINKS_SCREEN, onBack) { padding ->
         ScreenColumn(padding) {
-            Text(stringResource(R.string.deep_links_intro))
-            SectionTitle(stringResource(R.string.deep_links_examples))
+            Text(stringResource(R.string.deep_links_intro), modifier = Modifier.testTag(textTag(R.string.deep_links_intro)))
+            SectionTitle(R.string.deep_links_examples)
             deepLinkExamples.forEach { (name, link) ->
                 OutlinedButton(
                     onClick = { DeepLinkRouter.routeFor(link)?.let(onOpenRoute) },
                     modifier = Modifier.fillMaxWidth().testTag(TestTags.deepLinkExample(name)),
                 ) { Text(link, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall) }
             }
-            SectionTitle(stringResource(R.string.deep_links_custom))
+            SectionTitle(R.string.deep_links_custom)
             OutlinedTextField(
                 value = input,
                 onValueChange = {

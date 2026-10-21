@@ -106,7 +106,7 @@ fun FormsScreen(onBack: () -> Unit, viewModel: FormsViewModel = hiltViewModel())
                 ErrorText(fieldErrorText(FormField.COUNTRY, it), TestTags.formError(TestTags.FORM_COUNTRY))
             }
 
-            SectionTitle(stringResource(R.string.form_plan))
+            SectionTitle(R.string.form_plan)
             Column(Modifier.selectableGroup()) {
                 FormsViewModel.PLANS.forEach { plan ->
                     Row(

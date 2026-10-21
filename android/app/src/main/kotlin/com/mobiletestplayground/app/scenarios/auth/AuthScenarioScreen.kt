@@ -21,6 +21,7 @@ import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
 import com.mobiletestplayground.core.ui.components.ScreenColumn
 import com.mobiletestplayground.core.ui.components.SectionTitle
 import com.mobiletestplayground.core.ui.components.ValueRow
+import com.mobiletestplayground.core.ui.components.textTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -54,8 +55,12 @@ fun AuthScenarioScreen(
                 stringResource(if (session?.rememberMe == true) R.string.value_on else R.string.value_off),
                 TestTags.AUTH_REMEMBER_STATE,
             )
-            SectionTitle(stringResource(R.string.auth_authorization))
-            Text(stringResource(R.string.auth_authorization_hint), style = MaterialTheme.typography.bodySmall)
+            SectionTitle(R.string.auth_authorization)
+            Text(
+                stringResource(R.string.auth_authorization_hint),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.testTag(textTag(R.string.auth_authorization_hint)),
+            )
             OutlinedButton(onClick = onOpenAdmin, modifier = Modifier.fillMaxWidth().testTag(TestTags.AUTH_OPEN_ADMIN)) {
                 Text(stringResource(R.string.admin_title))
             }

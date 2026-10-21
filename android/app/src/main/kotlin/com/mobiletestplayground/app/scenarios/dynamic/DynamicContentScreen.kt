@@ -103,7 +103,7 @@ fun DynamicContentScreen(onBack: () -> Unit, viewModel: DynamicContentViewModel 
     val state by viewModel.state.collectAsStateWithLifecycle()
     PlaygroundScaffold(stringResource(R.string.scenario_dynamic), TestTags.DYNAMIC_CONTENT_SCREEN, onBack) { padding ->
         ScreenColumn(padding) {
-            SectionTitle(stringResource(R.string.dynamic_load_title))
+            SectionTitle(R.string.dynamic_load_title)
             Button(onClick = viewModel::load, modifier = Modifier.testTag(TestTags.DYNAMIC_CONTENT_LOAD)) {
                 Text(stringResource(R.string.dynamic_load))
             }
@@ -115,7 +115,7 @@ fun DynamicContentScreen(onBack: () -> Unit, viewModel: DynamicContentViewModel 
                 }
             }
 
-            SectionTitle(stringResource(R.string.dynamic_toggle_title))
+            SectionTitle(R.string.dynamic_toggle_title)
             OutlinedButton(onClick = viewModel::toggle, modifier = Modifier.testTag(TestTags.DYNAMIC_CONTENT_TOGGLE)) {
                 Text(stringResource(if (state.toggleVisible) R.string.dynamic_hide else R.string.dynamic_show))
             }
@@ -123,7 +123,7 @@ fun DynamicContentScreen(onBack: () -> Unit, viewModel: DynamicContentViewModel 
                 Text(stringResource(R.string.dynamic_toggle_target), modifier = Modifier.testTag(TestTags.DYNAMIC_CONTENT_TOGGLE_TARGET))
             }
 
-            SectionTitle(stringResource(R.string.dynamic_delayed_title))
+            SectionTitle(R.string.dynamic_delayed_title)
             Button(onClick = {}, enabled = state.delayedEnabled, modifier = Modifier.testTag(TestTags.DYNAMIC_CONTENT_DELAYED_BUTTON)) {
                 Text(stringResource(R.string.dynamic_delayed_button))
             }
@@ -133,7 +133,7 @@ fun DynamicContentScreen(onBack: () -> Unit, viewModel: DynamicContentViewModel 
                 TestTags.DYNAMIC_CONTENT_DELAYED_STATUS,
             )
 
-            SectionTitle(stringResource(R.string.dynamic_countdown_title))
+            SectionTitle(R.string.dynamic_countdown_title)
             OutlinedButton(onClick = viewModel::startCountdown, modifier = Modifier.testTag(TestTags.DYNAMIC_CONTENT_COUNTDOWN_START)) {
                 Text(stringResource(R.string.dynamic_countdown_start))
             }
@@ -148,7 +148,7 @@ fun DynamicContentScreen(onBack: () -> Unit, viewModel: DynamicContentViewModel 
                 TestTags.DYNAMIC_CONTENT_COUNTDOWN_VALUE,
             )
 
-            SectionTitle(stringResource(R.string.dynamic_text_title))
+            SectionTitle(R.string.dynamic_text_title)
             OutlinedButton(onClick = viewModel::changeText, modifier = Modifier.testTag(TestTags.DYNAMIC_CONTENT_CHANGE_TEXT)) {
                 Text(stringResource(R.string.dynamic_change_text))
             }

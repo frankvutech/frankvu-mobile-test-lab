@@ -51,6 +51,7 @@ import com.mobiletestplayground.core.ui.components.LoadingIndicator
 import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
 import com.mobiletestplayground.core.ui.components.ScreenColumn
 import com.mobiletestplayground.core.ui.components.ValueRow
+import com.mobiletestplayground.core.ui.components.textTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -279,7 +280,7 @@ fun CartScreen(viewModel: CartViewModel = hiltViewModel()) {
                         .testTag(TestTags.cartItem(line.product.id)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(line.product.name, modifier = Modifier.weight(1f))
+                    Text(line.product.name, modifier = Modifier.weight(1f).testTag(TestTags.title(TestTags.cartItem(line.product.id))))
                     Text("× " + line.quantity, modifier = Modifier.testTag(TestTags.cartItemQuantity(line.product.id)))
                     IconButton(
                         onClick = { viewModel.remove(line.product.id) },
@@ -311,7 +312,10 @@ private fun OrderConfirmation(placed: CheckoutResult.Placed) {
         Column(Modifier.padding(16.dp)) {
             Text(stringResource(R.string.cart_order_placed), style = MaterialTheme.typography.titleMedium)
             Text(placed.orderNumber, modifier = Modifier.testTag(TestTags.ORDER_NUMBER))
-            Text(stringResource(R.string.cart_total) + ": " + PriceFormatter.format(placed.totalCents))
+            Text(
+                stringResource(R.string.cart_total) + ": " + PriceFormatter.format(placed.totalCents),
+                modifier = Modifier.testTag(textTag(R.string.cart_total)),
+            )
         }
     }
 }

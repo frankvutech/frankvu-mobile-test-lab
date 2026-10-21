@@ -10,6 +10,19 @@ package com.mobiletestplayground.core.ui
  */
 @Suppress("TooManyFunctions") // A catalogue: one accessor per repeated element.
 object TestTags {
+    // --- Derived IDs (rules shared with iOS) ---
+    /** Static text from the shared string table (headings, labels, help text): `<string key>_text`. */
+    fun text(key: String) = "${key}_text"
+
+    /** A screen's scroll container: the screen ID without `_screen`, plus `_scroll`. */
+    fun scroll(screen: String) = "${screen}_scroll"
+
+    /** The label of a label/value row, next to the value it describes. */
+    fun label(valueTag: String) = "${valueTag}_label"
+
+    /** The visible title inside a tagged, non-clickable container (a card, a section, a target). */
+    fun title(containerTag: String) = "${containerTag}_title"
+
     // --- App chrome ---
     const val TOP_BAR_BACK = "top_bar_back"
     const val TOP_BAR_TITLE = "top_bar_title"

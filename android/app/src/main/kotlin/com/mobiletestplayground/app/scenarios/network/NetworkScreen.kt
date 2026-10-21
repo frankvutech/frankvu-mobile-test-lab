@@ -35,6 +35,7 @@ import com.mobiletestplayground.core.ui.components.ErrorText
 import com.mobiletestplayground.core.ui.components.LoadingIndicator
 import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
 import com.mobiletestplayground.core.ui.components.ScreenColumn
+import com.mobiletestplayground.core.ui.components.textTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -84,7 +85,7 @@ fun NetworkScreen(onBack: () -> Unit, viewModel: NetworkViewModel = hiltViewMode
     val state by viewModel.state.collectAsStateWithLifecycle()
     PlaygroundScaffold(stringResource(R.string.scenario_network), TestTags.NETWORK_SCREEN, onBack) { padding ->
         ScreenColumn(padding) {
-            Text(stringResource(R.string.network_intro))
+            Text(stringResource(R.string.network_intro), modifier = Modifier.testTag(textTag(R.string.network_intro)))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 NetworkScenario.entries.forEach { scenario ->
                     OutlinedButton(

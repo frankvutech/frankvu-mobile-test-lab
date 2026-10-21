@@ -42,6 +42,7 @@ import com.mobiletestplayground.core.ui.TestTags
 import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
 import com.mobiletestplayground.core.ui.components.ScreenColumn
 import com.mobiletestplayground.core.ui.components.ValueRow
+import com.mobiletestplayground.core.ui.components.textTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -145,7 +146,7 @@ fun NotificationsScreen(onBack: () -> Unit, viewModel: NotificationsViewModel = 
 
     PlaygroundScaffold(stringResource(R.string.scenario_notifications), TestTags.NOTIFICATIONS_SCREEN, onBack) { padding ->
         ScreenColumn(padding) {
-            Text(stringResource(R.string.notifications_intro))
+            Text(stringResource(R.string.notifications_intro), modifier = Modifier.testTag(textTag(R.string.notifications_intro)))
             ValueRow(
                 stringResource(R.string.permission_notifications),
                 stringResource(permission.label()),

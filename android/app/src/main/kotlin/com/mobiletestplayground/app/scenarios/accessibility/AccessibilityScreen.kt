@@ -43,6 +43,7 @@ import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
 import com.mobiletestplayground.core.ui.components.ScreenColumn
 import com.mobiletestplayground.core.ui.components.SectionTitle
 import com.mobiletestplayground.core.ui.components.ValueRow
+import com.mobiletestplayground.core.ui.components.textTag
 
 /**
  * Examples of correct semantics for TalkBack and for automation that queries accessibility data:
@@ -62,9 +63,9 @@ fun AccessibilityScreen(onBack: () -> Unit) {
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.testTag(TestTags.A11Y_HEADING).semantics { heading() },
             )
-            Text(stringResource(R.string.a11y_intro))
+            Text(stringResource(R.string.a11y_intro), modifier = Modifier.testTag(textTag(R.string.a11y_intro)))
 
-            SectionTitle(stringResource(R.string.a11y_icon_button))
+            SectionTitle(R.string.a11y_icon_button)
             val favoriteLabel = stringResource(R.string.a11y_favorite)
             val favoriteState = stringResource(if (favorite) R.string.a11y_favorite_on else R.string.a11y_favorite_off)
             IconToggleButton(
@@ -78,7 +79,7 @@ fun AccessibilityScreen(onBack: () -> Unit) {
                     },
             ) { Icon(if (favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, contentDescription = null) }
 
-            SectionTitle(stringResource(R.string.a11y_merged))
+            SectionTitle(R.string.a11y_merged)
             // mergeDescendants: TalkBack reads the card as one item instead of three fragments.
             Card(Modifier.fillMaxWidth().testTag(TestTags.A11Y_MERGED_CARD).semantics(mergeDescendants = true) {}) {
                 Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -90,7 +91,7 @@ fun AccessibilityScreen(onBack: () -> Unit) {
                 }
             }
 
-            SectionTitle(stringResource(R.string.a11y_custom_actions))
+            SectionTitle(R.string.a11y_custom_actions)
             val archive = stringResource(R.string.dialogs_action_archive)
             val share = stringResource(R.string.dialogs_action_share)
             Card(
@@ -116,7 +117,7 @@ fun AccessibilityScreen(onBack: () -> Unit) {
                 TestTags.A11Y_CUSTOM_ACTION_RESULT,
             )
 
-            SectionTitle(stringResource(R.string.a11y_live_region))
+            SectionTitle(R.string.a11y_live_region)
             Text(
                 stringResource(R.string.a11y_announcements, announcements),
                 modifier = Modifier.testTag(TestTags.A11Y_LIVE_REGION).semantics { liveRegion = LiveRegionMode.Polite },
@@ -125,13 +126,13 @@ fun AccessibilityScreen(onBack: () -> Unit) {
                 Text(stringResource(R.string.a11y_announce))
             }
 
-            SectionTitle(stringResource(R.string.a11y_touch_target))
+            SectionTitle(R.string.a11y_touch_target)
             // 48dp minimum touch target, even though the visible label is small.
             Button(onClick = {}, modifier = Modifier.size(width = 160.dp, height = 56.dp).testTag(TestTags.A11Y_LARGE_TARGET)) {
                 Text(stringResource(R.string.a11y_large_target), style = MaterialTheme.typography.labelSmall)
             }
 
-            SectionTitle(stringResource(R.string.a11y_images))
+            SectionTitle(R.string.a11y_images)
             Row {
                 Image(
                     imageVector = Icons.Filled.Star,

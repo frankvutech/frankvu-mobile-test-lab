@@ -1,5 +1,6 @@
 package com.mobiletestplayground.core.ui.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,9 +32,12 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -46,6 +50,17 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.mobiletestplayground.core.ui.R
 import com.mobiletestplayground.core.ui.TestTags
+
+/** The root ID of the enclosing [PlaygroundScaffold]; screen-level IDs such as the scroll container derive from it. */
+val LocalScreenTag = staticCompositionLocalOf<String?> { null }
+
+/** The ID of a static text from the string table: `<string key>_text` (see [TestTags.text]). */
+@Composable
+fun textTag(@StringRes id: Int): String = TestTags.text(LocalContext.current.resources.getResourceEntryName(id))
+
+/** The scroll container ID of the current screen: `login_screen` → `login_scroll` (see [TestTags.scroll]). */
+@Composable
+fun screenScrollTag(): String = TestTags.scroll((LocalScreenTag.current ?: "screen").removeSuffix("_screen"))
 
 /**
  * The standard screen frame: a top app bar with a tagged title and optional back button, and a
@@ -91,12 +106,12 @@ fun PlaygroundScaffold(
                 .fillMaxSize()
                 .testTag(rootTag),
         ) {
-            content(padding)
+            CompositionLocalProvider(LocalScreenTag provides rootTag) { content(padding) }
         }
     }
 }
 
-/** A scrolling column with the standard screen padding. */
+/** A scrolling column with the standard screen padding, tagged as the screen's scroll container. */
 @Composable
 fun ScreenColumn(
     padding: PaddingValues,
@@ -108,24 +123,28 @@ fun ScreenColumn(
             .fillMaxSize()
             .padding(padding)
             .verticalScroll(rememberScrollState())
+            .testTag(screenScrollTag())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         content = content,
     )
 }
 
+/** A section heading from the string table, tagged `<string key>_text`. */
 @Composable
-fun SectionTitle(text: String, modifier: Modifier = Modifier) {
+fun SectionTitle(@StringRes textRes: Int, modifier: Modifier = Modifier) {
     Text(
-        text = text,
+        text = stringResource(textRes),
         style = MaterialTheme.typography.titleMedium,
-        modifier = modifier.semantics { heading() },
+        modifier = modifier
+            .testTag(textTag(textRes))
+            .semantics { heading() },
     )
 }
 
 /**
  * A label/value pair. The value carries the tag so tests assert on exactly the state text, e.g.
- * `onNodeWithTag("controls_switch_state").assertTextEquals("ON")`.
+ * `onNodeWithTag("controls_switch_state").assertTextEquals("ON")`; the label is `<value tag>_label`.
  */
 @Composable
 fun ValueRow(
@@ -135,7 +154,7 @@ fun ValueRow(
     modifier: Modifier = Modifier,
 ) {
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+        Text(label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f).testTag(TestTags.label(valueTag)))
         Spacer(Modifier.width(8.dp))
         Text(value, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag(valueTag))
     }

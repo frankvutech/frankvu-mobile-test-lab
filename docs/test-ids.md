@@ -16,6 +16,10 @@ difference is listed in [automation.md](automation.md#platform-differences).
 
 | Screen | Element | Automation ID |
 |---|---|---|
+| Derived IDs (rules shared with iOS) | Text (pattern) | `<key>_text` |
+| Derived IDs (rules shared with iOS) | Scroll (pattern) | `<screen>_scroll` |
+| Derived IDs (rules shared with iOS) | Label (pattern) | `<valueTag>_label` |
+| Derived IDs (rules shared with iOS) | Title (pattern) | `<containerTag>_title` |
 | App chrome | Top bar back | `top_bar_back` |
 | App chrome | Top bar title | `top_bar_title` |
 | App chrome | Bottom nav home | `bottom_nav_home` |

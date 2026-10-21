@@ -33,6 +33,7 @@ import com.mobiletestplayground.core.ui.components.LoadingIndicator
 import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
 import com.mobiletestplayground.core.ui.components.ScreenColumn
 import com.mobiletestplayground.core.ui.components.SectionTitle
+import com.mobiletestplayground.core.ui.components.textTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -111,7 +112,7 @@ fun ErrorHandlingScreen(onBack: () -> Unit, viewModel: ErrorHandlingViewModel = 
 
     PlaygroundScaffold(stringResource(R.string.scenario_errors), TestTags.ERRORS_SCREEN, onBack) { padding ->
         ScreenColumn(padding) {
-            Text(stringResource(R.string.errors_intro))
+            Text(stringResource(R.string.errors_intro), modifier = Modifier.testTag(textTag(R.string.errors_intro)))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(
                     onClick = viewModel::triggerNetwork,
@@ -140,7 +141,7 @@ fun ErrorHandlingScreen(onBack: () -> Unit, viewModel: ErrorHandlingViewModel = 
             Text(state.name, style = MaterialTheme.typography.labelSmall, modifier = Modifier.testTag(TestTags.ERRORS_STATE))
             ErrorPanel(state, onRetry = viewModel::retry, onDismiss = viewModel::dismiss)
 
-            SectionTitle(stringResource(R.string.errors_inline_title))
+            SectionTitle(R.string.errors_inline_title)
             val error = inlineError(inline)
             OutlinedTextField(
                 value = inline,
