@@ -3,7 +3,10 @@ package com.mobiletestplayground.app.uiautomator
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.os.SystemClock
 import android.util.Log
+import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -27,6 +30,7 @@ import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 import org.junit.runner.RunWith
 import java.io.ByteArrayOutputStream
+import java.util.concurrent.TimeoutException
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -104,34 +108,68 @@ class UiAutomatorTest {
     private fun launchDeepLink(link: String) = launch(Intent(Intent.ACTION_VIEW, Uri.parse(link)).setPackage(packageName))
 
     /**
+     * Waits for the element and returns it, or null after [timeout]. UiAutomation caches the nodes it has
+     * read and drops them only when the app sends accessibility events. On GitHub's emulator the app at
+     * times sent none for seconds after a scroll, so `device.wait` could keep matching cached nodes from
+     * before it (a failure dump showed a list with a card missing from the middle). Clearing the cache
+     * before every poll makes each check read the app's current tree (API 34+).
+     *
+     * A launcher "isn't responding" dialog can also appear in the middle of a test (on GitHub, right after
+     * the login tap) and cover the app until the wait times out, so every poll dismisses one. The first
+     * dismissal restarts the timeout, since the app was hidden until then.
+     */
+    private fun waitFor(selector: BySelector, timeout: Long): UiObject2? {
+        var deadline = SystemClock.uptimeMillis() + timeout
+        var restarted = false
+        while (true) {
+            clearAccessibilityCache()
+            device.findObject(selector)?.let { return it }
+            if (dismissSystemDialogs() && !restarted) {
+                restarted = true
+                deadline = SystemClock.uptimeMillis() + timeout
+                continue
+            }
+            if (SystemClock.uptimeMillis() >= deadline) return null
+            SystemClock.sleep(POLL_INTERVAL)
+        }
+    }
+
+    private fun clearAccessibilityCache() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            InstrumentationRegistry.getInstrumentation().uiAutomation.clearCache()
+        }
+    }
+
+    /**
      * Finds the element once the UI has settled. UIAutomator does not wait for the app the way Compose
      * tests do: on a slow emulator a node can appear before its screen accepts input, and a click sent
      * then is lost. Waiting for idle (no accessibility events for a moment) and finding the node again
      * avoids that, and costs nothing noticeable on a fast device.
      */
     private fun find(selector: BySelector, timeout: Long = TIMEOUT): UiObject2 {
-        val first = device.wait(Until.findObject(selector), timeout)
-            ?: if (dismissSystemDialogs()) device.wait(Until.findObject(selector), timeout) else null
-        assertNotNull(first, "Not found: $selector")
+        assertNotNull(waitFor(selector, timeout), "Not found: $selector")
         device.waitForIdle(IDLE_TIMEOUT)
-        return assertNotNull(device.wait(Until.findObject(selector), timeout), "Not found after idle: $selector")
+        return assertNotNull(waitFor(selector, timeout), "Not found after idle: $selector")
     }
 
     private fun id(tag: String): UiObject2 = find(By.res(tag))
 
     /**
-     * Scrolls until the element is on screen: down first, then back up. Uses the
-     * scrollable node when the accessibility tree exposes one, otherwise a plain swipe (right after
-     * rotation the tree may still be rebuilding). Waits for idle after each scroll so a slow device
-     * cannot scroll past the element before the tree shows it.
+     * Scrolls until the element is on screen: down first, then back up, each way until the list stops
+     * moving. The accessibility tree lags behind a scroll: Compose reports the new position in a later
+     * event, and `waitForIdle` returns at once when no event has arrived yet, so a single `hasObject`
+     * right after the scroll can still see the old page. On a freshly booted emulator that lag let the
+     * helper scroll past the element and back without ever seeing it. Each step therefore waits for
+     * the element for a moment (see [waitFor]) before scrolling on.
      */
     private fun scrollTo(tag: String): UiObject2 {
-        if (device.hasObject(By.res(tag))) return id(tag)
+        if (waitFor(By.res(tag), 0) != null) return id(tag)
         for (direction in listOf(Direction.DOWN, Direction.UP)) {
-            repeat(MAX_SCROLLS) {
-                scroll(direction)
-                device.waitForIdle(IDLE_TIMEOUT)
-                if (device.hasObject(By.res(tag))) return id(tag)
+            var moved = true
+            var steps = 0
+            while (moved && steps++ < MAX_SCROLLS) {
+                moved = scroll(direction)
+                if (waitFor(By.res(tag), SCROLL_SETTLE_TIMEOUT) != null) return id(tag)
             }
         }
         return id(tag)
@@ -139,22 +177,33 @@ class UiAutomatorTest {
 
     /**
      * Scrolls one step through the accessibility layer, as TalkBack does: ACTION_SCROLL_FORWARD or
-     * ACTION_SCROLL_BACKWARD on the first scrollable node. Swipe gestures were unreliable on the
+     * ACTION_SCROLL_BACKWARD on the first scrollable node, then waits for the app's scroll event so
+     * the next step starts from the new position. Swipe gestures were unreliable on the
      * software-rendered CI emulator (the list did not move at all), and an accessibility action does not
      * depend on touch timing. Falls back to a swipe when no scrollable node is exposed (right after
-     * rotation the tree may still be rebuilding).
+     * rotation the tree may still be rebuilding). Returns false once the list cannot move further.
      */
-    private fun scroll(direction: Direction) {
+    private fun scroll(direction: Direction): Boolean {
         val action = if (direction == Direction.DOWN) {
             AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
         } else {
             AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
         }
-        val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow
-        val scrollable = root?.let(::firstScrollable)
+        val uiAutomation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        val scrollable = uiAutomation.rootInActiveWindow?.let(::firstScrollable)
         if (scrollable != null) {
-            scrollable.performAction(action)
-            return
+            var moved = false
+            try {
+                uiAutomation.executeAndWaitForEvent(
+                    { moved = scrollable.performAction(action) },
+                    { it.eventType == AccessibilityEvent.TYPE_VIEW_SCROLLED && it.packageName == packageName },
+                    SCROLL_EVENT_TIMEOUT,
+                )
+            } catch (e: TimeoutException) {
+                // Expected when the list was already at its end; otherwise the settle wait covers it.
+                Log.d(LOG_TAG, "No scroll event (moved=$moved)", e)
+            }
+            return moved
         }
         val (from, to) = if (direction == Direction.DOWN) 3 to 1 else 1 to 3
         device.swipe(
@@ -164,6 +213,7 @@ class UiAutomatorTest {
             device.displayHeight * to / 4,
             SWIPE_STEPS,
         )
+        return true
     }
 
     private fun firstScrollable(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
@@ -200,7 +250,7 @@ class UiAutomatorTest {
      */
     private fun assertText(tag: String, expected: String) {
         assertTrue(
-            device.wait(Until.hasObject(By.res(tag).text(expected)), TIMEOUT),
+            waitFor(By.res(tag).text(expected), TIMEOUT) != null,
             "Expected '$expected' in $tag but found '${device.findObject(By.res(tag))?.text}'",
         )
     }
@@ -301,7 +351,7 @@ class UiAutomatorTest {
         scrollToAndClick(TestTags.scenario("webview"))
         // The WebView is a classic View, so it has a namespaced View id rather than a bare test tag. Only
         // its presence is checked: once the page loads, Chromium's own tree can take the node's place.
-        assertTrue(device.wait(Until.hasObject(By.res(packageName, "webview")), WEB_TIMEOUT), "WebView not shown")
+        assertTrue(waitFor(By.res(packageName, "webview"), WEB_TIMEOUT) != null, "WebView not shown")
 
         // Inside the WebView, Chromium exposes HTML ids as resource ids.
         val input = find(By.res("web_input"), WEB_TIMEOUT)
@@ -311,7 +361,7 @@ class UiAutomatorTest {
         assertText(TestTags.WEBVIEW_MESSAGE, "button:Ada")
 
         id(TestTags.WEBVIEW_SEND_TO_WEB).click()
-        assertTrue(device.wait(Until.hasObject(By.textContains(string(R.string.webview_native_greeting))), TIMEOUT))
+        assertTrue(waitFor(By.textContains(string(R.string.webview_native_greeting)), TIMEOUT) != null)
 
         // Back leaves the hybrid screen for the native dashboard.
         id(TestTags.TOP_BAR_BACK).click()
@@ -347,6 +397,9 @@ class UiAutomatorTest {
         const val MAX_SYSTEM_DIALOGS = 3
         const val DIALOG_TIMEOUT = 2_000L
         const val MAX_SCROLLS = 15
+        const val SCROLL_EVENT_TIMEOUT = 3_000L
+        const val SCROLL_SETTLE_TIMEOUT = 2_000L
+        const val POLL_INTERVAL = 250L
         const val SWIPE_STEPS = 20
     }
 }

@@ -287,7 +287,7 @@ Xcode 27.1). "Not run" means not verified, not "failed".
 | GitHub Actions: iOS | ✅ Passed on GitHub (macOS runner: unit tests incl. live backend, 18 XCUITests) |
 | GitHub Actions: Android build and Docker jobs | ✅ Passed on GitHub (lint, unit tests, APKs; APK built inside the Docker image). The image now pre-installs build-tools 36 (an earlier run failed on a corrupted download of it) |
 | GitHub Actions: Android Compose UI + backend integration job (38 tests) | ✅ Passed in every GitHub run since the module fix |
-| GitHub Actions: Android UIAutomator job (9 tests) | ⚠️ Non-blocking. Last GitHub run (4 cores / 4 GB): 0/9, because a system "Pixel Launcher isn't responding" dialog covered the app. The tests now tap "Wait" on such dialogs; not yet run on GitHub. Earlier runs: 1–5 of 9 failed per run |
+| GitHub Actions: Android UIAutomator job (9 tests) | ⚠️ Non-blocking. Last GitHub run (4 cores / 4 GB): 0/9, because a system "Pixel Launcher isn't responding" dialog covered the app. The tests now tap "Wait" on such dialogs. PR #2 runs: 8/9 (WebView test, stale accessibility cache; the waits now clear it), then 7/9 (the WebView test passed; two tests failed because the launcher dialog reappeared after login; every wait now dismisses it). Latest change passes locally on cold-booted emulators, not yet run on GitHub. Earlier runs: 1–5 of 9 failed per run |
 
 ## Troubleshooting
 
@@ -308,12 +308,17 @@ Xcode 27.1). "Not run" means not verified, not "failed".
 
 - Android emulators do not run inside Docker here (no KVM on Docker Desktop); instrumented tests need a
   host emulator/device or a KVM CI runner.
-- UIAutomator tests are unreliable on freshly booted emulators. On GitHub's software-rendered
-  emulator, failure dumps show the app intermittently not updating (login stuck on "Signing in", clicks
-  and scroll actions without effect) and a launcher "isn't responding" dialog over the app (the tests
-  now dismiss it). Compose tests, whose rule drives the frame clock, are unaffected. On a warm local
-  emulator all 9 pass; on a cold-booted one the WebView test can fail because the home list does not
-  scroll. CI therefore runs them in a separate job that reports without blocking.
+- UIAutomator tests have been unreliable on GitHub's software-rendered emulator: failure dumps showed
+  the app intermittently not updating (login stuck on "Signing in", clicks and scroll actions without
+  effect) and a launcher "isn't responding" dialog over the app (the tests now dismiss it whenever they wait, since it can reappear mid-test). Compose
+  tests, whose rule drives the frame clock, are unaffected. Locally, the WebView test used to fail on a
+  cold-booted emulator: the home list did scroll, but the accessibility tree reported the new position
+  later than `waitForIdle` returned, so the scroll helper went past the card and back without seeing it.
+  The helper now waits for the scroll event and for the element after each step. On GitHub that got
+  8 of 9 passing; the WebView test still failed because the app sent no accessibility events after the
+  scrolls, so UiAutomation's node cache kept serving the old page. The waits now clear that cache on
+  every poll. All 9 pass on a cold-booted local emulator (two runs in a row); the cache change has not
+  yet run on GitHub, so CI still runs them in a separate job that reports without blocking.
 - The backend's test-support endpoints (`/api/v1/test/*`) must be disabled (`TEST_SUPPORT_ENABLED=false`)
   outside local development and CI.
 - Login reports unknown users and wrong passwords with different codes, deliberately, for testability.
