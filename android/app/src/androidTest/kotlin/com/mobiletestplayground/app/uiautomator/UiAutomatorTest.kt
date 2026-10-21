@@ -113,12 +113,22 @@ class UiAutomatorTest {
      * times sent none for seconds after a scroll, so `device.wait` could keep matching cached nodes from
      * before it (a failure dump showed a list with a card missing from the middle). Clearing the cache
      * before every poll makes each check read the app's current tree (API 34+).
+     *
+     * A launcher "isn't responding" dialog can also appear in the middle of a test (on GitHub, right after
+     * the login tap) and cover the app until the wait times out, so every poll dismisses one. The first
+     * dismissal restarts the timeout, since the app was hidden until then.
      */
     private fun waitFor(selector: BySelector, timeout: Long): UiObject2? {
-        val deadline = SystemClock.uptimeMillis() + timeout
+        var deadline = SystemClock.uptimeMillis() + timeout
+        var restarted = false
         while (true) {
             clearAccessibilityCache()
             device.findObject(selector)?.let { return it }
+            if (dismissSystemDialogs() && !restarted) {
+                restarted = true
+                deadline = SystemClock.uptimeMillis() + timeout
+                continue
+            }
             if (SystemClock.uptimeMillis() >= deadline) return null
             SystemClock.sleep(POLL_INTERVAL)
         }
@@ -137,9 +147,7 @@ class UiAutomatorTest {
      * avoids that, and costs nothing noticeable on a fast device.
      */
     private fun find(selector: BySelector, timeout: Long = TIMEOUT): UiObject2 {
-        val first = waitFor(selector, timeout)
-            ?: if (dismissSystemDialogs()) waitFor(selector, timeout) else null
-        assertNotNull(first, "Not found: $selector")
+        assertNotNull(waitFor(selector, timeout), "Not found: $selector")
         device.waitForIdle(IDLE_TIMEOUT)
         return assertNotNull(waitFor(selector, timeout), "Not found after idle: $selector")
     }
