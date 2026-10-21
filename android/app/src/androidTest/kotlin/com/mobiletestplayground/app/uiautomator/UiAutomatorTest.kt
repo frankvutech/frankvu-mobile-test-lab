@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -27,6 +28,7 @@ import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 import org.junit.runner.RunWith
 import java.io.ByteArrayOutputStream
+import java.util.concurrent.TimeoutException
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -120,18 +122,21 @@ class UiAutomatorTest {
     private fun id(tag: String): UiObject2 = find(By.res(tag))
 
     /**
-     * Scrolls until the element is on screen: down first, then back up. Uses the
-     * scrollable node when the accessibility tree exposes one, otherwise a plain swipe (right after
-     * rotation the tree may still be rebuilding). Waits for idle after each scroll so a slow device
-     * cannot scroll past the element before the tree shows it.
+     * Scrolls until the element is on screen: down first, then back up, each way until the list stops
+     * moving. The accessibility tree lags behind a scroll: Compose reports the new position in a later
+     * event, and `waitForIdle` returns at once when no event has arrived yet, so a single `hasObject`
+     * right after the scroll can still see the old page. On a freshly booted emulator that lag let the
+     * helper scroll past the element and back without ever seeing it. Each step therefore waits for
+     * the element for a moment before scrolling on.
      */
     private fun scrollTo(tag: String): UiObject2 {
         if (device.hasObject(By.res(tag))) return id(tag)
         for (direction in listOf(Direction.DOWN, Direction.UP)) {
-            repeat(MAX_SCROLLS) {
-                scroll(direction)
-                device.waitForIdle(IDLE_TIMEOUT)
-                if (device.hasObject(By.res(tag))) return id(tag)
+            var moved = true
+            var steps = 0
+            while (moved && steps++ < MAX_SCROLLS) {
+                moved = scroll(direction)
+                if (device.wait(Until.hasObject(By.res(tag)), SCROLL_SETTLE_TIMEOUT)) return id(tag)
             }
         }
         return id(tag)
@@ -139,22 +144,33 @@ class UiAutomatorTest {
 
     /**
      * Scrolls one step through the accessibility layer, as TalkBack does: ACTION_SCROLL_FORWARD or
-     * ACTION_SCROLL_BACKWARD on the first scrollable node. Swipe gestures were unreliable on the
+     * ACTION_SCROLL_BACKWARD on the first scrollable node, then waits for the app's scroll event so
+     * the next step starts from the new position. Swipe gestures were unreliable on the
      * software-rendered CI emulator (the list did not move at all), and an accessibility action does not
      * depend on touch timing. Falls back to a swipe when no scrollable node is exposed (right after
-     * rotation the tree may still be rebuilding).
+     * rotation the tree may still be rebuilding). Returns false once the list cannot move further.
      */
-    private fun scroll(direction: Direction) {
+    private fun scroll(direction: Direction): Boolean {
         val action = if (direction == Direction.DOWN) {
             AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
         } else {
             AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
         }
-        val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow
-        val scrollable = root?.let(::firstScrollable)
+        val uiAutomation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        val scrollable = uiAutomation.rootInActiveWindow?.let(::firstScrollable)
         if (scrollable != null) {
-            scrollable.performAction(action)
-            return
+            var moved = false
+            try {
+                uiAutomation.executeAndWaitForEvent(
+                    { moved = scrollable.performAction(action) },
+                    { it.eventType == AccessibilityEvent.TYPE_VIEW_SCROLLED && it.packageName == packageName },
+                    SCROLL_EVENT_TIMEOUT,
+                )
+            } catch (e: TimeoutException) {
+                // Expected when the list was already at its end; otherwise the settle wait covers it.
+                Log.d(LOG_TAG, "No scroll event (moved=$moved)", e)
+            }
+            return moved
         }
         val (from, to) = if (direction == Direction.DOWN) 3 to 1 else 1 to 3
         device.swipe(
@@ -164,6 +180,7 @@ class UiAutomatorTest {
             device.displayHeight * to / 4,
             SWIPE_STEPS,
         )
+        return true
     }
 
     private fun firstScrollable(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
@@ -347,6 +364,8 @@ class UiAutomatorTest {
         const val MAX_SYSTEM_DIALOGS = 3
         const val DIALOG_TIMEOUT = 2_000L
         const val MAX_SCROLLS = 15
+        const val SCROLL_EVENT_TIMEOUT = 3_000L
+        const val SCROLL_SETTLE_TIMEOUT = 2_000L
         const val SWIPE_STEPS = 20
     }
 }
