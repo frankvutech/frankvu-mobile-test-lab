@@ -287,7 +287,7 @@ Xcode 27.1). "Not run" means not verified, not "failed".
 | GitHub Actions: iOS | ✅ Passed on GitHub (macOS runner: unit tests incl. live backend, 18 XCUITests) |
 | GitHub Actions: Android build and Docker jobs | ✅ Passed on GitHub (lint, unit tests, APKs; APK built inside the Docker image). The image now pre-installs build-tools 36 (an earlier run failed on a corrupted download of it) |
 | GitHub Actions: Android Compose UI + backend integration job (38 tests) | ✅ Passed in every GitHub run since the module fix |
-| GitHub Actions: Android UIAutomator job (9 tests) | ⚠️ Non-blocking. On GitHub 1–5 of the 9 failed per run (different tests each time); 9/9 locally. The separate job with 4 cores / 4 GB RAM is not yet run on GitHub |
+| GitHub Actions: Android UIAutomator job (9 tests) | ⚠️ Non-blocking. Last GitHub run (4 cores / 4 GB): 0/9, because a system "Pixel Launcher isn't responding" dialog covered the app. The tests now tap "Wait" on such dialogs; not yet run on GitHub. Earlier runs: 1–5 of 9 failed per run |
 
 ## Troubleshooting
 
@@ -308,10 +308,12 @@ Xcode 27.1). "Not run" means not verified, not "failed".
 
 - Android emulators do not run inside Docker here (no KVM on Docker Desktop); instrumented tests need a
   host emulator/device or a KVM CI runner.
-- UIAutomator tests are unreliable on GitHub's software-rendered emulator: failure dumps show the app
-  intermittently not updating (login stuck on "Signing in", clicks and scroll actions without effect),
-  while Compose tests, whose rule drives the frame clock, are unaffected. They pass 9/9 on a local
-  emulator. CI therefore runs them in a separate job that reports without blocking.
+- UIAutomator tests are unreliable on freshly booted emulators. On GitHub's software-rendered
+  emulator, failure dumps show the app intermittently not updating (login stuck on "Signing in", clicks
+  and scroll actions without effect) and a launcher "isn't responding" dialog over the app (the tests
+  now dismiss it). Compose tests, whose rule drives the frame clock, are unaffected. On a warm local
+  emulator all 9 pass; on a cold-booted one the WebView test can fail because the home list does not
+  scroll. CI therefore runs them in a separate job that reports without blocking.
 - The backend's test-support endpoints (`/api/v1/test/*`) must be disabled (`TEST_SUPPORT_ENABLED=false`)
   outside local development and CI.
 - Login reports unknown users and wrong passwords with different codes, deliberately, for testability.

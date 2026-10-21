@@ -68,6 +68,7 @@ class UiAutomatorTest {
     @Before
     fun setUp() {
         hilt.inject()
+        dismissSystemDialogs()
         device.setOrientationNatural()
     }
 
@@ -76,7 +77,26 @@ class UiAutomatorTest {
         device.setOrientationNatural()
     }
 
+    /**
+     * Taps "Wait" on any "<app> isn't responding" system dialog. A freshly booted CI emulator often shows
+     * one for the launcher, and it covers the app under test. Returns true if a dialog was dismissed.
+     */
+    private fun dismissSystemDialogs(): Boolean {
+        var dismissed = false
+        repeat(MAX_SYSTEM_DIALOGS) {
+            val wait = device.findObject(By.res("android", "aerr_wait"))
+                ?: device.findObject(By.pkg("android").text("Wait"))
+                ?: return dismissed
+            Log.w(LOG_TAG, "Dismissing a system \"isn't responding\" dialog")
+            wait.click()
+            device.wait(Until.gone(By.res("android", "aerr_wait")), DIALOG_TIMEOUT)
+            dismissed = true
+        }
+        return dismissed
+    }
+
     private fun launch(intent: Intent = context.packageManager.getLaunchIntentForPackage(packageName)!!) {
+        dismissSystemDialogs()
         context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         device.wait(Until.hasObject(By.pkg(packageName).depth(0)), TIMEOUT)
     }
@@ -90,7 +110,9 @@ class UiAutomatorTest {
      * avoids that, and costs nothing noticeable on a fast device.
      */
     private fun find(selector: BySelector, timeout: Long = TIMEOUT): UiObject2 {
-        assertNotNull(device.wait(Until.findObject(selector), timeout), "Not found: $selector")
+        val first = device.wait(Until.findObject(selector), timeout)
+            ?: if (dismissSystemDialogs()) device.wait(Until.findObject(selector), timeout) else null
+        assertNotNull(first, "Not found: $selector")
         device.waitForIdle(IDLE_TIMEOUT)
         return assertNotNull(device.wait(Until.findObject(selector), timeout), "Not found after idle: $selector")
     }
@@ -322,6 +344,8 @@ class UiAutomatorTest {
         const val MAX_FRAMES = 25
         const val STALE_RETRIES = 2
         const val IDLE_TIMEOUT = 3_000L
+        const val MAX_SYSTEM_DIALOGS = 3
+        const val DIALOG_TIMEOUT = 2_000L
         const val MAX_SCROLLS = 15
         const val SWIPE_STEPS = 20
     }
