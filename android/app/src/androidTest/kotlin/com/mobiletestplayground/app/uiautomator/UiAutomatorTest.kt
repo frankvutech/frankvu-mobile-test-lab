@@ -3,6 +3,8 @@ package com.mobiletestplayground.app.uiautomator
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.os.SystemClock
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
@@ -106,17 +108,40 @@ class UiAutomatorTest {
     private fun launchDeepLink(link: String) = launch(Intent(Intent.ACTION_VIEW, Uri.parse(link)).setPackage(packageName))
 
     /**
+     * Waits for the element and returns it, or null after [timeout]. UiAutomation caches the nodes it has
+     * read and drops them only when the app sends accessibility events. On GitHub's emulator the app at
+     * times sent none for seconds after a scroll, so `device.wait` could keep matching cached nodes from
+     * before it (a failure dump showed a list with a card missing from the middle). Clearing the cache
+     * before every poll makes each check read the app's current tree (API 34+).
+     */
+    private fun waitFor(selector: BySelector, timeout: Long): UiObject2? {
+        val deadline = SystemClock.uptimeMillis() + timeout
+        while (true) {
+            clearAccessibilityCache()
+            device.findObject(selector)?.let { return it }
+            if (SystemClock.uptimeMillis() >= deadline) return null
+            SystemClock.sleep(POLL_INTERVAL)
+        }
+    }
+
+    private fun clearAccessibilityCache() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            InstrumentationRegistry.getInstrumentation().uiAutomation.clearCache()
+        }
+    }
+
+    /**
      * Finds the element once the UI has settled. UIAutomator does not wait for the app the way Compose
      * tests do: on a slow emulator a node can appear before its screen accepts input, and a click sent
      * then is lost. Waiting for idle (no accessibility events for a moment) and finding the node again
      * avoids that, and costs nothing noticeable on a fast device.
      */
     private fun find(selector: BySelector, timeout: Long = TIMEOUT): UiObject2 {
-        val first = device.wait(Until.findObject(selector), timeout)
-            ?: if (dismissSystemDialogs()) device.wait(Until.findObject(selector), timeout) else null
+        val first = waitFor(selector, timeout)
+            ?: if (dismissSystemDialogs()) waitFor(selector, timeout) else null
         assertNotNull(first, "Not found: $selector")
         device.waitForIdle(IDLE_TIMEOUT)
-        return assertNotNull(device.wait(Until.findObject(selector), timeout), "Not found after idle: $selector")
+        return assertNotNull(waitFor(selector, timeout), "Not found after idle: $selector")
     }
 
     private fun id(tag: String): UiObject2 = find(By.res(tag))
@@ -127,16 +152,16 @@ class UiAutomatorTest {
      * event, and `waitForIdle` returns at once when no event has arrived yet, so a single `hasObject`
      * right after the scroll can still see the old page. On a freshly booted emulator that lag let the
      * helper scroll past the element and back without ever seeing it. Each step therefore waits for
-     * the element for a moment before scrolling on.
+     * the element for a moment (see [waitFor]) before scrolling on.
      */
     private fun scrollTo(tag: String): UiObject2 {
-        if (device.hasObject(By.res(tag))) return id(tag)
+        if (waitFor(By.res(tag), 0) != null) return id(tag)
         for (direction in listOf(Direction.DOWN, Direction.UP)) {
             var moved = true
             var steps = 0
             while (moved && steps++ < MAX_SCROLLS) {
                 moved = scroll(direction)
-                if (device.wait(Until.hasObject(By.res(tag)), SCROLL_SETTLE_TIMEOUT)) return id(tag)
+                if (waitFor(By.res(tag), SCROLL_SETTLE_TIMEOUT) != null) return id(tag)
             }
         }
         return id(tag)
@@ -217,7 +242,7 @@ class UiAutomatorTest {
      */
     private fun assertText(tag: String, expected: String) {
         assertTrue(
-            device.wait(Until.hasObject(By.res(tag).text(expected)), TIMEOUT),
+            waitFor(By.res(tag).text(expected), TIMEOUT) != null,
             "Expected '$expected' in $tag but found '${device.findObject(By.res(tag))?.text}'",
         )
     }
@@ -318,7 +343,7 @@ class UiAutomatorTest {
         scrollToAndClick(TestTags.scenario("webview"))
         // The WebView is a classic View, so it has a namespaced View id rather than a bare test tag. Only
         // its presence is checked: once the page loads, Chromium's own tree can take the node's place.
-        assertTrue(device.wait(Until.hasObject(By.res(packageName, "webview")), WEB_TIMEOUT), "WebView not shown")
+        assertTrue(waitFor(By.res(packageName, "webview"), WEB_TIMEOUT) != null, "WebView not shown")
 
         // Inside the WebView, Chromium exposes HTML ids as resource ids.
         val input = find(By.res("web_input"), WEB_TIMEOUT)
@@ -328,7 +353,7 @@ class UiAutomatorTest {
         assertText(TestTags.WEBVIEW_MESSAGE, "button:Ada")
 
         id(TestTags.WEBVIEW_SEND_TO_WEB).click()
-        assertTrue(device.wait(Until.hasObject(By.textContains(string(R.string.webview_native_greeting))), TIMEOUT))
+        assertTrue(waitFor(By.textContains(string(R.string.webview_native_greeting)), TIMEOUT) != null)
 
         // Back leaves the hybrid screen for the native dashboard.
         id(TestTags.TOP_BAR_BACK).click()
@@ -366,6 +391,7 @@ class UiAutomatorTest {
         const val MAX_SCROLLS = 15
         const val SCROLL_EVENT_TIMEOUT = 3_000L
         const val SCROLL_SETTLE_TIMEOUT = 2_000L
+        const val POLL_INTERVAL = 250L
         const val SWIPE_STEPS = 20
     }
 }
