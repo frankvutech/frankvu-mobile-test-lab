@@ -36,15 +36,19 @@ struct DialogsView: View {
             }
             .accessibilityIdentifier(TestIDs.dialogsShowSnackbar)
         }
+        // The snackbar overlay wraps the form, so the screen root ID moves to the wrapper: the form keeps
+        // its own scroll container ID, the same as on Android.
+        .accessibilityIdentifier(TestIDs.scroll("dialogs"))
         .overlay(alignment: .bottom) {
             if snackbarVisible {
                 HStack {
-                    Text(L10n.tr("dialogs_snackbar_message"))
+                    Text(L10n.tr("dialogs_snackbar_message")).accessibilityIdentifier(TestIDs.snackbarMessage)
                     Spacer()
                     Button(L10n.tr("action_undo")) {
                         snackbarVisible = false
                         result = "snackbar_undo"
                     }
+                    .accessibilityIdentifier(TestIDs.snackbarAction)
                 }
                 .padding()
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
@@ -78,8 +82,8 @@ struct DialogsView: View {
         }
         .sheet(isPresented: binding(.bottomSheet)) {
             VStack(alignment: .leading, spacing: 12) {
-                Text(L10n.tr("dialogs_bottom_sheet")).font(.headline)
-                Text(L10n.tr("dialogs_bottom_sheet_body"))
+                Text(L10n.tr("dialogs_bottom_sheet")).font(.headline).accessibilityIdentifier(TestIDs.title(TestIDs.bottomSheet))
+                Text(L10n.tr("dialogs_bottom_sheet_body")).accessibilityIdentifier(TestIDs.message(TestIDs.bottomSheet))
                 PrimaryButton(title: L10n.tr("action_close"), id: TestIDs.bottomSheetClose) {
                     result = "bottom_sheet_closed"
                     open = .none
@@ -89,7 +93,7 @@ struct DialogsView: View {
             .presentationDetents([.medium])
             .screenRoot(TestIDs.bottomSheet)
         }
-        .navigationTitle(L10n.tr("scenario_dialogs"))
+        .screenTitle(L10n.tr("scenario_dialogs"))
         .screenRoot(TestIDs.dialogsScreen)
     }
 
@@ -192,10 +196,10 @@ struct PermissionsView: View {
 
     var body: some View {
         Form {
-            Text(L10n.tr("permissions_intro"))
+            KeyText("permissions_intro")
             ForEach(PermissionKind.allCases) { kind in
                 let status = model.statuses[kind] ?? .notRequested
-                Section(L10n.tr("permission_\(kind.rawValue)")) {
+                Section(key: "permission_\(kind.rawValue)") {
                     Text(L10n.tr(status.labelKey)).accessibilityIdentifier(TestIDs.permissionStatus(kind.rawValue))
                     Button(L10n.tr(status == .notRequested ? "permissions_request" : "permissions_request_again")) {
                         Task { await model.request(kind) }
@@ -210,7 +214,7 @@ struct PermissionsView: View {
             }
             .accessibilityIdentifier(TestIDs.permissionOpenSettings)
         }
-        .navigationTitle(L10n.tr("scenario_permissions"))
+        .screenTitle(L10n.tr("scenario_permissions"))
         .task { await model.refresh() }
         .screenRoot(TestIDs.permissionsScreen)
     }
@@ -286,7 +290,7 @@ struct WebViewScreen: View {
             .buttonStyle(.bordered)
             PlaygroundWebView(message: $message, controller: controller)
         }
-        .navigationTitle(L10n.tr("scenario_webview"))
+        .screenTitle(L10n.tr("scenario_webview"))
         .screenRoot(TestIDs.webviewScreen)
     }
 }
@@ -350,7 +354,7 @@ struct NetworkView: View {
 
     var body: some View {
         Form {
-            Text(L10n.tr("network_intro"))
+            KeyText("network_intro")
             Section {
                 ForEach(NetworkScenario.allCases) { scenario in
                     Button(L10n.tr(labelKey(scenario))) { Task { await model.load(scenario, client: env.network) } }
@@ -382,7 +386,7 @@ struct NetworkView: View {
                 }
             }
         }
-        .navigationTitle(L10n.tr("scenario_network"))
+        .screenTitle(L10n.tr("scenario_network"))
         .screenRoot(TestIDs.networkScreen)
     }
 }

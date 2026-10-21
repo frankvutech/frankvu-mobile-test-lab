@@ -244,7 +244,12 @@ fun TestModeScreen(onBack: () -> Unit, viewModel: TestModeViewModel = hiltViewMo
                 Text(stringResource(R.string.test_mode_disabled), modifier = Modifier.testTag(TestTags.TEST_MODE_DISABLED))
                 return@ScreenColumn
             }
-            Card { Text(stringResource(R.string.test_mode_warning), modifier = Modifier.padding(16.dp)) }
+            Card {
+                Text(
+                    stringResource(R.string.test_mode_warning),
+                    modifier = Modifier.padding(16.dp).testTag(textTag(R.string.test_mode_warning)),
+                )
+            }
             BackendSection(settings, viewModel)
             SectionTitle(R.string.test_mode_simulation)
             LabeledSwitch(

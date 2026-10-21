@@ -10,6 +10,22 @@ Rules: lowercase `snake_case`; independent of visible text and locale; unique am
 at the same time; stable between launches. Screen roots end in `_screen` (or are the screen name for
 admin screens). Error labels are the field id plus `_error`.
 
+**Every element has an ID.** Each element that shows content or reacts to input (text, image, input
+field, button, toggle, progress, scroll container) carries one, on both platforms. Text and icons
+inside an identified control belong to that control. The audit tests `IdentifierCoverageTest`
+(Android) and `IdentifierCoverageUITests` (iOS) open every screen and state and fail on any element
+without an ID; see [automation.md](automation.md#identifier-coverage).
+
+Derived IDs follow fixed rules, so they need no catalogue entry and are the same on both platforms:
+
+| Element | Rule | Example |
+|---|---|---|
+| Static text from the shared string table (heading, label, help text) | `<string key>_text` | `login_heading_text` |
+| A screen's scroll container | `<screen>_scroll` (screen ID without `_screen`) | `login_scroll` |
+| Label of a label/value row | `<value id>_label` | `profile_email_label` |
+| Title inside a tagged container (card, section, dialog, sheet, target) | `<container id>_title` | `scroll_card_01_title` |
+| Body text inside a tagged dialog or sheet | `<container id>_message` | `dialog_warning_message` |
+
 Where a platform renders an element with a system control that cannot carry an identifier, the
 difference is listed in [automation.md](automation.md#platform-differences).
 
@@ -20,6 +36,7 @@ difference is listed in [automation.md](automation.md#platform-differences).
 | Derived IDs (rules shared with iOS) | Scroll (pattern) | `<screen>_scroll` |
 | Derived IDs (rules shared with iOS) | Label (pattern) | `<valueTag>_label` |
 | Derived IDs (rules shared with iOS) | Title (pattern) | `<containerTag>_title` |
+| Derived IDs (rules shared with iOS) | Message (pattern) | `<containerTag>_message` |
 | App chrome | Top bar back | `top_bar_back` |
 | App chrome | Top bar title | `top_bar_title` |
 | App chrome | Bottom nav home | `bottom_nav_home` |
@@ -149,6 +166,7 @@ difference is listed in [automation.md](automation.md#platform-differences).
 | Forms | Password | `form_password` |
 | Forms | Age | `form_age` |
 | Forms | Country | `form_country` |
+| Forms | Country menu | `form_country_menu` |
 | Forms | Form country option (pattern) | `form_country_option_<code>` |
 | Forms | Plan | `form_plan` |
 | Forms | Form plan (pattern) | `form_plan_<plan>` |
@@ -193,6 +211,7 @@ difference is listed in [automation.md](automation.md#platform-differences).
 | Buttons and controls | Progress reset | `controls_progress_reset` |
 | Buttons and controls | Spinner | `controls_spinner` |
 | Lists | Screen | `lists_screen` |
+| Lists | Tabs | `lists_tabs` |
 | Lists | Tab static | `lists_tab_static` |
 | Lists | Tab dynamic | `lists_tab_dynamic` |
 | Lists | Tab infinite | `lists_tab_infinite` |
@@ -202,6 +221,7 @@ difference is listed in [automation.md](automation.md#platform-differences).
 | Lists | List input | `dynamic_list_input` |
 | Lists | List add | `dynamic_list_add` |
 | Lists | List search | `dynamic_list_search` |
+| Lists | List sort | `dynamic_list_sort` |
 | Lists | Dynamic list sort (pattern) | `dynamic_list_sort_<order>` |
 | Lists | List count | `dynamic_list_count` |
 | Lists | List empty | `dynamic_list_empty` |
@@ -253,6 +273,7 @@ difference is listed in [automation.md](automation.md#platform-differences).
 | Navigation | Modal screen | `nav_modal_screen` |
 | Navigation | Modal close | `nav_modal_close` |
 | Navigation | Nested screen | `nav_nested_screen` |
+| Navigation | Nested tabs | `nav_nested_tabs` |
 | Navigation | Nav nested tab (pattern) | `nav_nested_tab_<tab>` |
 | Navigation | Nested content | `nav_nested_content` |
 | Dialogs | Screen | `dialogs_screen` |
@@ -277,6 +298,8 @@ difference is listed in [automation.md](automation.md#platform-differences).
 | Dialogs | Bottom sheet | `bottom_sheet` |
 | Dialogs | Bottom sheet close | `bottom_sheet_close` |
 | Dialogs | Snackbar | `snackbar` |
+| Dialogs | Snackbar message | `snackbar_message` |
+| Dialogs | Snackbar action | `snackbar_action` |
 | Permissions | Screen | `permissions_screen` |
 | Permissions | Permission status (pattern) | `permission_<permission>_status` |
 | Permissions | Permission request (pattern) | `permission_<permission>_request` |

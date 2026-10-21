@@ -47,6 +47,7 @@ import com.mobiletestplayground.core.ui.TestTags
 import com.mobiletestplayground.core.ui.components.ErrorText
 import com.mobiletestplayground.core.ui.components.LabeledCheckbox
 import com.mobiletestplayground.core.ui.components.PlaygroundScaffold
+import com.mobiletestplayground.core.ui.components.screenScrollTag
 import com.mobiletestplayground.core.ui.components.textTag
 
 @Composable
@@ -112,6 +113,7 @@ private fun LoginContent(
             .fillMaxSize()
             .imePadding()
             .verticalScroll(rememberScrollState())
+            .testTag(screenScrollTag())
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {

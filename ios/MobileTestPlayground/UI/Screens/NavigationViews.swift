@@ -9,22 +9,22 @@ struct NavigationRootView: View {
     var body: some View {
         @Bindable var router = router
         Form {
-            Text(L10n.tr("navigation_intro"))
+            KeyText("navigation_intro")
             Button(L10n.tr("navigation_push")) { router.homePath.append(.navDetail(1)) }.accessibilityIdentifier(TestIDs.navPushDetail)
             Button(L10n.tr("navigation_modal")) { router.showNavModal = true }.accessibilityIdentifier(TestIDs.navOpenModal)
             Button(L10n.tr("navigation_nested")) { router.homePath.append(.navNested) }.accessibilityIdentifier(TestIDs.navOpenNested)
-            Section(L10n.tr("navigation_state")) {
-                Text(L10n.tr("navigation_state_hint")).font(.footnote)
+            Section(key: "navigation_state") {
+                KeyText("navigation_state_hint").font(.footnote)
                 ValueRow(label: L10n.tr("navigation_counter"), value: "\(counter)", valueID: TestIDs.navCounterValue)
                 Button(L10n.tr("navigation_increment")) { counter += 1 }.accessibilityIdentifier(TestIDs.navCounterIncrement)
             }
         }
-        .navigationTitle(L10n.tr("scenario_navigation"))
+        .screenTitle(L10n.tr("scenario_navigation"))
         .fullScreenCover(isPresented: $router.showNavModal) {
             NavigationStack {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text(L10n.tr("navigation_modal_title")).font(.title2)
-                    Text(L10n.tr("navigation_modal_body"))
+                    KeyText("navigation_modal_title").font(.title2)
+                    KeyText("navigation_modal_body")
                     Spacer()
                 }
                 .padding()
@@ -58,7 +58,7 @@ struct NavigationDetailView: View {
             }
             .accessibilityIdentifier(TestIDs.navDetailPopToRoot)
         }
-        .navigationTitle(L10n.tr("navigation_detail_title", level))
+        .screenTitle(L10n.tr("navigation_detail_title", level))
         .screenRoot(TestIDs.navDetailScreen)
     }
 }
@@ -75,13 +75,14 @@ struct NavigationNestedView: View {
                 }
             }
             .pickerStyle(.segmented)
+            .accessibilityIdentifier(TestIDs.navNestedTabs)
             .padding()
             Text(L10n.tr("navigation_tab_content", tab.uppercased()))
                 .font(.title2)
                 .accessibilityIdentifier(TestIDs.navNestedContent)
             Spacer()
         }
-        .navigationTitle(L10n.tr("navigation_nested"))
+        .screenTitle(L10n.tr("navigation_nested"))
         .screenRoot(TestIDs.navNestedScreen)
     }
 }

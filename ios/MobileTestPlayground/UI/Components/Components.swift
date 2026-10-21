@@ -18,9 +18,59 @@ extension View {
     func screenRoot(_ id: String) -> some View {
         accessibilityElement(children: .contain).accessibilityIdentifier(id)
     }
+
+    /// The screen title, shown in the navigation bar as an element with the `top_bar_title` identifier
+    /// (the same as Android's app bar title). The system title stays set for VoiceOver and back buttons.
+    func screenTitle(_ title: String) -> some View {
+        navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(title)
+                        .font(.headline)
+                        .accessibilityAddTraits(.isHeader)
+                        .accessibilityIdentifier(TestIDs.topBarTitle)
+                }
+            }
+    }
 }
 
-/// A label/value pair. The value carries the identifier so tests assert on exactly the state text.
+/// A static text from the string table, identified `<key>_text` (TestIDs.text): headings, labels,
+/// help text. Use it for every text that is not part of a control.
+struct KeyText: View {
+    let key: String
+    var args: [CVarArg] = []
+
+    init(_ key: String, _ args: CVarArg...) {
+        self.key = key
+        self.args = args
+    }
+
+    var body: some View {
+        Text(args.isEmpty ? L10n.tr(key) : String(format: L10n.tr(key), locale: Locale.current, arguments: args))
+            .accessibilityIdentifier(TestIDs.text(key))
+    }
+}
+
+/// A form section heading from the string table, identified `<key>_text`.
+struct SectionTitle: View {
+    let key: String
+
+    var body: some View {
+        KeyText(key).accessibilityAddTraits(.isHeader)
+    }
+}
+
+extension Section where Parent == SectionTitle, Footer == EmptyView, Content: View {
+    /// A form section whose header is the string-table text `key`, identified `<key>_text`
+    /// (`Section("title")` gives its header no way to carry an identifier).
+    init(key: String, @ViewBuilder content: () -> Content) {
+        self.init(content: content, header: { SectionTitle(key: key) })
+    }
+}
+
+/// A label/value pair. The value carries the identifier so tests assert on exactly the state text;
+/// the label is `<value id>_label` (as on Android).
 struct ValueRow: View {
     let label: String
     let value: String
@@ -28,7 +78,7 @@ struct ValueRow: View {
 
     var body: some View {
         HStack {
-            Text(label)
+            Text(label).accessibilityIdentifier(TestIDs.label(valueID))
             Spacer()
             Text(value).accessibilityIdentifier(valueID)
         }

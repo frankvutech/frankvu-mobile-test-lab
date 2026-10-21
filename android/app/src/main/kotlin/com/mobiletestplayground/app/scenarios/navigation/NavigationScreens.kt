@@ -138,7 +138,10 @@ fun NavigationNestedScreen(onBack: () -> Unit) {
     val current = entry?.destination?.route ?: nestedTabs.first()
     PlaygroundScaffold(stringResource(R.string.navigation_nested), TestTags.NAV_NESTED_SCREEN, onBack) { padding ->
         Column(Modifier.padding(padding)) {
-            PrimaryTabRow(selectedTabIndex = nestedTabs.indexOf(current).coerceAtLeast(0)) {
+            PrimaryTabRow(
+                selectedTabIndex = nestedTabs.indexOf(current).coerceAtLeast(0),
+                modifier = Modifier.testTag(TestTags.NAV_NESTED_TABS),
+            ) {
                 nestedTabs.forEach { tab ->
                     Tab(
                         selected = current == tab,

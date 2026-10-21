@@ -25,6 +25,22 @@ Rules: lowercase `snake_case`; independent of visible text and locale; unique am
 at the same time; stable between launches. Screen roots end in `_screen` (or are the screen name for
 admin screens). Error labels are the field id plus `_error`.
 
+**Every element has an ID.** Each element that shows content or reacts to input (text, image, input
+field, button, toggle, progress, scroll container) carries one, on both platforms. Text and icons
+inside an identified control belong to that control. The audit tests `IdentifierCoverageTest`
+(Android) and `IdentifierCoverageUITests` (iOS) open every screen and state and fail on any element
+without an ID; see [automation.md](automation.md#identifier-coverage).
+
+Derived IDs follow fixed rules, so they need no catalogue entry and are the same on both platforms:
+
+| Element | Rule | Example |
+|---|---|---|
+| Static text from the shared string table (heading, label, help text) | `<string key>_text` | `login_heading_text` |
+| A screen's scroll container | `<screen>_scroll` (screen ID without `_screen`) | `login_scroll` |
+| Label of a label/value row | `<value id>_label` | `profile_email_label` |
+| Title inside a tagged container (card, section, dialog, sheet, target) | `<container id>_title` | `scroll_card_01_title` |
+| Body text inside a tagged dialog or sheet | `<container id>_message` | `dialog_warning_message` |
+
 Where a platform renders an element with a system control that cannot carry an identifier, the
 difference is listed in [automation.md](automation.md#platform-differences).
 

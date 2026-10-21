@@ -11,6 +11,8 @@ import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.UiDevice
 import com.mobiletestplayground.app.navigation.Scenario
 import com.mobiletestplayground.core.ui.TestTags
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -125,6 +127,66 @@ class IdentifierCoverageTest : PlaygroundComposeTest() {
         assertNothingMissing()
     }
 
+    /** UI that only exists after an action: other tabs, dialogs, sheets, menus, snackbars, error states. */
+    @Test
+    fun transientStatesTagEveryElement() {
+        robot.loginAsAdmin()
+
+        openDeepLink("scenario/lists")
+        robot.tapInPlace(TestTags.LISTS_TAB_DYNAMIC)
+        robot.waitFor(TestTags.DYNAMIC_LIST)
+        audit("lists_dynamic")
+        robot.tapInPlace(TestTags.LISTS_TAB_INFINITE)
+        compose.waitForIdle()
+        audit("lists_infinite")
+
+        openDeepLink("scenario/dialogs")
+        listOf(
+            TestTags.DIALOGS_OPEN_CONFIRMATION to "dialog_confirmation",
+            TestTags.DIALOGS_OPEN_INFORMATION to "dialog_information",
+            TestTags.DIALOGS_OPEN_WARNING to "dialog_warning",
+            TestTags.DIALOGS_OPEN_ERROR to "dialog_error",
+            TestTags.DIALOGS_OPEN_ACTION_SHEET to "action_sheet",
+            TestTags.DIALOGS_OPEN_BOTTOM_SHEET to "bottom_sheet",
+        ).forEach { (trigger, screen) ->
+            robot.tap(trigger)
+            compose.waitForIdle()
+            auditVisible(screen)
+            // Dialogs and sheets have their own window: a real Back key closes them.
+            pressBackKey()
+            compose.waitForIdle()
+        }
+        robot.tap(TestTags.DIALOGS_SHOW_SNACKBAR)
+        robot.waitFor(TestTags.SNACKBAR)
+        auditVisible("snackbar")
+
+        openDeepLink("scenario/errors")
+        listOf(
+            TestTags.ERRORS_TRIGGER_NETWORK,
+            TestTags.ERRORS_TRIGGER_UNEXPECTED,
+            TestTags.ERRORS_TRIGGER_EMPTY,
+            TestTags.ERRORS_TRIGGER_RECOVERABLE,
+        ).forEach { trigger ->
+            robot.tap(trigger)
+            robot.waitGone(TestTags.ERRORS_LOADING)
+            audit("errors_${trigger.removePrefix("errors_trigger_")}")
+        }
+
+        openDeepLink("scenario/dynamic_content")
+        robot.tap(TestTags.DYNAMIC_CONTENT_LOAD)
+        robot.waitFor(TestTags.DYNAMIC_CONTENT_LOADED)
+        robot.tap(TestTags.DYNAMIC_CONTENT_TOGGLE)
+        audit("dynamic_content_loaded")
+
+        openDeepLink("scenario/forms")
+        robot.tap(TestTags.FORM_COUNTRY)
+        compose.waitForIdle()
+        auditVisible("forms_country_menu")
+        pressBackKey()
+
+        assertNothingMissing()
+    }
+
     private fun openDeepLink(path: String) {
         val activity = compose.activity
         compose.runOnUiThread {
@@ -132,6 +194,12 @@ class IdentifierCoverageTest : PlaygroundComposeTest() {
                 Intent(Intent.ACTION_VIEW, Uri.parse("mtp://playground/$path")).setPackage(activity.packageName),
             )
         }
+        compose.waitForIdle()
+    }
+
+    /** A real Back key, which also closes dialogs, sheets and menus (they have their own window). */
+    private fun pressBackKey() {
+        UiDevice.getInstance(InstrumentationRegistry.getInstrumentation()).pressBack()
         compose.waitForIdle()
     }
 
@@ -178,7 +246,7 @@ class IdentifierCoverageTest : PlaygroundComposeTest() {
 
     private fun auditVisible(screen: String) {
         roots().forEach { root ->
-            root.descendants().filter { it.isElement() && SemanticsProperties.TestTag !in it.config }
+            root.descendants().filter { it.isElement() && SemanticsProperties.TestTag !in it.config && !it.isFrameworkOwned() }
                 .forEach { missing.getOrPut(screen) { linkedSetOf() } += it.describe() }
         }
     }
@@ -191,6 +259,17 @@ class IdentifierCoverageTest : PlaygroundComposeTest() {
     }
 
     private fun SemanticsNode.isElement(): Boolean = ELEMENT_KEYS.any { it in config }
+
+    /**
+     * Material's modal bottom sheet adds two accessibility nodes of its own that take no modifier, so they
+     * cannot carry a tag: the dismiss scrim behind the sheet ("Close sheet") and the wrapper around the
+     * drag handle ("Drag handle", with the expand/collapse actions). They are the only exceptions; tests
+     * address the sheet by its tag and close it with its own button or the Back key.
+     */
+    private fun SemanticsNode.isFrameworkOwned(): Boolean {
+        val description = config.getOrNull(SemanticsProperties.ContentDescription).orEmpty()
+        return description.any { it == SHEET_SCRIM_DESCRIPTION || it == SHEET_DRAG_HANDLE_DESCRIPTION }
+    }
 
     private fun SemanticsNode.describe(): String {
         val text = config.getOrNull(SemanticsProperties.Text)?.joinToString(" ")
@@ -232,6 +311,10 @@ class IdentifierCoverageTest : PlaygroundComposeTest() {
         const val SCROLL_FRACTION = 0.6f
         const val MAX_TEXT = 40
         const val SCROLL_BACK = 1_000_000f
+
+        // Material 3 modal bottom sheet nodes (the instrumented tests run in English).
+        const val SHEET_SCRIM_DESCRIPTION = "Close sheet"
+        const val SHEET_DRAG_HANDLE_DESCRIPTION = "Drag handle"
 
         val ELEMENT_KEYS = listOf(
             SemanticsProperties.Text,

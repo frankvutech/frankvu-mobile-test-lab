@@ -111,7 +111,12 @@ fun DynamicContentScreen(onBack: () -> Unit, viewModel: DynamicContentViewModel 
                 LoadState.IDLE -> Unit
                 LoadState.LOADING -> LoadingIndicator(TestTags.DYNAMIC_CONTENT_LOADING)
                 LoadState.LOADED -> Card(Modifier.fillMaxWidth().testTag(TestTags.DYNAMIC_CONTENT_LOADED)) {
-                    Text(stringResource(R.string.dynamic_loaded), modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+                    Text(
+                        stringResource(R.string.dynamic_loaded),
+                        modifier = Modifier
+                            .testTag(TestTags.title(TestTags.DYNAMIC_CONTENT_LOADED))
+                            .semantics { liveRegion = LiveRegionMode.Polite },
+                    )
                 }
             }
 

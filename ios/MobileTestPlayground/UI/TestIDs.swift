@@ -122,6 +122,7 @@ enum TestIDs {
     static let formPassword = "form_password"
     static let formAge = "form_age"
     static let formCountry = "form_country"
+    static let formCountryMenu = "form_country_menu"
     static let formPlan = "form_plan"
     static let formTerms = "form_terms"
     static let formNewsletter = "form_newsletter"
@@ -162,6 +163,7 @@ enum TestIDs {
     static let controlsProgressReset = "controls_progress_reset"
     static let controlsSpinner = "controls_spinner"
     static let listsScreen = "lists_screen"
+    static let listsTabs = "lists_tabs"
     static let listsTabStatic = "lists_tab_static"
     static let listsTabDynamic = "lists_tab_dynamic"
     static let listsTabInfinite = "lists_tab_infinite"
@@ -170,6 +172,7 @@ enum TestIDs {
     static let dynamicListInput = "dynamic_list_input"
     static let dynamicListAdd = "dynamic_list_add"
     static let dynamicListSearch = "dynamic_list_search"
+    static let dynamicListSort = "dynamic_list_sort"
     static let dynamicListCount = "dynamic_list_count"
     static let dynamicListEmpty = "dynamic_list_empty"
     static let dynamicListEditDialog = "dynamic_list_edit_dialog"
@@ -214,6 +217,7 @@ enum TestIDs {
     static let navModalScreen = "nav_modal_screen"
     static let navModalClose = "nav_modal_close"
     static let navNestedScreen = "nav_nested_screen"
+    static let navNestedTabs = "nav_nested_tabs"
     static let navNestedContent = "nav_nested_content"
     static let dialogsScreen = "dialogs_screen"
     static let dialogsOpenConfirmation = "dialogs_open_confirmation"
@@ -236,6 +240,8 @@ enum TestIDs {
     static let bottomSheet = "bottom_sheet"
     static let bottomSheetClose = "bottom_sheet_close"
     static let snackbar = "snackbar"
+    static let snackbarMessage = "snackbar_message"
+    static let snackbarAction = "snackbar_action"
     static let permissionsScreen = "permissions_screen"
     static let permissionOpenSettings = "permission_open_settings"
     static let webviewScreen = "webview_screen"
@@ -327,6 +333,7 @@ enum TestIDs {
     static func scroll(_ screen: String) -> String { "\(screen)_scroll" }
     static func label(_ valueTag: String) -> String { "\(valueTag)_label" }
     static func title(_ containerTag: String) -> String { "\(containerTag)_title" }
+    static func message(_ containerTag: String) -> String { "\(containerTag)_message" }
     static func scenario(_ id: String) -> String { "scenario_\(id)" }
     static func product(_ productId: String) -> String { productId }
     static func productAddToCart(_ productId: String) -> String { "\(productId)_add_to_cart" }

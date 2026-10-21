@@ -279,7 +279,11 @@ private fun CountryDropdown(selected: String?, onSelect: (String) -> Unit) {
                 .fillMaxWidth()
                 .testTag(TestTags.FORM_COUNTRY),
         )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.testTag(TestTags.FORM_COUNTRY_MENU),
+        ) {
             FormsViewModel.COUNTRIES.forEach { code ->
                 DropdownMenuItem(
                     text = { Text(stringResource(countryLabel(code))) },

@@ -13,14 +13,14 @@ struct AccessibilityView: View {
     var body: some View {
         Form {
             Text(L10n.tr("a11y_heading")).font(.title2).accessibilityAddTraits(.isHeader).accessibilityIdentifier(TestIDs.a11yHeading)
-            Text(L10n.tr("a11y_intro"))
-            Section(L10n.tr("a11y_icon_button")) {
+            KeyText("a11y_intro")
+            Section(key: "a11y_icon_button") {
                 Button { favorite.toggle() } label: { Image(systemName: favorite ? "heart.fill" : "heart") }
                     .accessibilityLabel(L10n.tr("a11y_favorite"))
                     .accessibilityValue(L10n.tr(favorite ? "a11y_favorite_on" : "a11y_favorite_off"))
                     .accessibilityIdentifier(TestIDs.a11yFavorite)
             }
-            Section(L10n.tr("a11y_merged")) {
+            Section(key: "a11y_merged") {
                 // Combined: VoiceOver reads the row as one element instead of three fragments.
                 HStack {
                     Image(systemName: "star.fill")
@@ -32,7 +32,7 @@ struct AccessibilityView: View {
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier(TestIDs.a11yMergedCard)
             }
-            Section(L10n.tr("a11y_custom_actions")) {
+            Section(key: "a11y_custom_actions") {
                 Text(L10n.tr("a11y_custom_actions_body"))
                     .accessibilityAction(named: L10n.tr("dialogs_action_archive")) { lastAction = "archive" }
                     .accessibilityAction(named: L10n.tr("dialogs_action_share")) { lastAction = "share" }
@@ -40,7 +40,7 @@ struct AccessibilityView: View {
                 ValueRow(label: L10n.tr("a11y_last_action"), value: lastAction ?? L10n.tr("value_none"),
                     valueID: TestIDs.a11yCustomActionResult)
             }
-            Section(L10n.tr("a11y_live_region")) {
+            Section(key: "a11y_live_region") {
                 Text(L10n.tr("a11y_announcements", announcements)).accessibilityIdentifier(TestIDs.a11yLiveRegion)
                 Button(L10n.tr("a11y_announce")) {
                     announcements += 1
@@ -48,14 +48,14 @@ struct AccessibilityView: View {
                 }
                 .accessibilityIdentifier(TestIDs.a11yLiveRegionTrigger)
             }
-            Section(L10n.tr("a11y_touch_target")) {
+            Section(key: "a11y_touch_target") {
                 Button(L10n.tr("a11y_large_target")) {}
                     .font(.caption2)
                     .frame(minWidth: 160, minHeight: 56)
                     .contentShape(Rectangle())
                     .accessibilityIdentifier(TestIDs.a11yLargeTarget)
             }
-            Section(L10n.tr("a11y_images")) {
+            Section(key: "a11y_images") {
                 HStack {
                     Image(systemName: "star.circle.fill").font(.largeTitle)
                         .accessibilityLabel(L10n.tr("a11y_image_description"))
@@ -65,7 +65,7 @@ struct AccessibilityView: View {
                 }
             }
         }
-        .navigationTitle(L10n.tr("scenario_accessibility"))
+        .screenTitle(L10n.tr("scenario_accessibility"))
         .screenRoot(TestIDs.accessibilityScreen)
     }
 }
@@ -86,7 +86,7 @@ struct ErrorHandlingView: View {
 
     var body: some View {
         Form {
-            Text(L10n.tr("errors_intro"))
+            KeyText("errors_intro")
             Button(L10n.tr("errors_network")) { triggerNetwork() }.accessibilityIdentifier(TestIDs.errorsTriggerNetwork)
             Button(L10n.tr("errors_unexpected")) {
                 // Simulated failure caught at the boundary; the app never crashes.
@@ -97,12 +97,12 @@ struct ErrorHandlingView: View {
             Button(L10n.tr("errors_recoverable")) { state = "RECOVERABLE" }.accessibilityIdentifier(TestIDs.errorsTriggerRecoverable)
             Text(state).font(.caption2).accessibilityIdentifier(TestIDs.errorsState)
             panel
-            Section(L10n.tr("errors_inline_title")) {
+            Section(key: "errors_inline_title") {
                 TextField(L10n.tr("errors_inline_label"), text: $inline).accessibilityIdentifier(TestIDs.errorsInlineInput)
                 if let inlineError { ErrorLabel(text: inlineError, id: TestIDs.errorsInlineError) }
             }
         }
-        .navigationTitle(L10n.tr("scenario_errors"))
+        .screenTitle(L10n.tr("scenario_errors"))
         .screenRoot(TestIDs.errorsScreen)
     }
 
@@ -146,7 +146,7 @@ struct DynamicContentView: View {
 
     var body: some View {
         Form {
-            Section(L10n.tr("dynamic_load_title")) {
+            Section(key: "dynamic_load_title") {
                 Button(L10n.tr("dynamic_load")) {
                     guard loadState != 1 else { return }
                     loadState = 1
@@ -159,25 +159,25 @@ struct DynamicContentView: View {
                 if loadState == 1 { ProgressView().accessibilityIdentifier(TestIDs.dynamicContentLoading) }
                 if loadState == 2 { Text(L10n.tr("dynamic_loaded")).accessibilityIdentifier(TestIDs.dynamicContentLoaded) }
             }
-            Section(L10n.tr("dynamic_toggle_title")) {
+            Section(key: "dynamic_toggle_title") {
                 Button(L10n.tr(visible ? "dynamic_hide" : "dynamic_show")) { withAnimation { visible.toggle() } }
                     .accessibilityIdentifier(TestIDs.dynamicContentToggle)
                 if visible { Text(L10n.tr("dynamic_toggle_target")).accessibilityIdentifier(TestIDs.dynamicContentToggleTarget) }
             }
-            Section(L10n.tr("dynamic_delayed_title")) {
+            Section(key: "dynamic_delayed_title") {
                 Button(L10n.tr("dynamic_delayed_button")) {}.disabled(!delayedEnabled)
                     .accessibilityIdentifier(TestIDs.dynamicContentDelayedButton)
                 ValueRow(label: L10n.tr("dynamic_delayed_title"), value: L10n.tr(delayedEnabled ? "dynamic_enabled" : "dynamic_disabled"),
                          valueID: TestIDs.dynamicContentDelayedStatus)
             }
-            Section(L10n.tr("dynamic_countdown_title")) {
+            Section(key: "dynamic_countdown_title") {
                 Button(L10n.tr("dynamic_countdown_start")) { startCountdown() }
                     .accessibilityIdentifier(TestIDs.dynamicContentCountdownStart)
                 ValueRow(label: L10n.tr("dynamic_countdown_title"),
                          value: countdown.map { $0 == 0 ? L10n.tr("dynamic_countdown_done") : "\($0)" } ?? L10n.tr("value_not_started"),
                          valueID: TestIDs.dynamicContentCountdownValue)
             }
-            Section(L10n.tr("dynamic_text_title")) {
+            Section(key: "dynamic_text_title") {
                 Button(L10n.tr("dynamic_change_text")) {
                     Task { @MainActor in
                         try? await Task.sleep(nanoseconds: 1_000_000_000)
@@ -189,7 +189,7 @@ struct DynamicContentView: View {
                     .accessibilityIdentifier(TestIDs.dynamicContentText)
             }
         }
-        .navigationTitle(L10n.tr("scenario_dynamic"))
+        .screenTitle(L10n.tr("scenario_dynamic"))
         .task {
             try? await Task.sleep(nanoseconds: UInt64(env.timing.delayedEnable * 1_000_000_000))
             delayedEnabled = true
@@ -215,20 +215,20 @@ struct TestDataView: View {
 
     var body: some View {
         Form {
-            Section(L10n.tr("test_data_users")) {
+            Section(key: "test_data_users") {
                 ForEach(SeedData.accounts, id: \.user.id) { account in
                     ValueRow(label: account.user.email, value: account.locked ? L10n.tr("admin_user_locked") : account.user.role.rawValue,
                              valueID: TestIDs.testDataUser(account.user.id))
                 }
             }
-            Section(L10n.tr("test_data_products")) {
+            Section(key: "test_data_products") {
                 ForEach(SeedData.products.prefix(5)) { product in
                     ValueRow(label: product.name, value: PriceFormatter.format(product.priceCents),
                         valueID: TestIDs.testDataProduct(product.id))
                 }
-                Text(L10n.tr("test_data_more_products", SeedData.products.count)).font(.footnote)
+                KeyText("test_data_more_products", SeedData.products.count).font(.footnote)
             }
-            Section(L10n.tr("lists_dynamic")) {
+            Section(key: "lists_dynamic") {
                 ValueRow(label: L10n.tr("test_data_item_count"), value: "\(env.dynamicItems.items.count)",
                     valueID: TestIDs.testDataItemCount)
                 Button(L10n.tr("test_mode_generate_data")) {
@@ -244,7 +244,7 @@ struct TestDataView: View {
                 if let status { Text(status).accessibilityIdentifier(TestIDs.testDataStatus) }
             }
         }
-        .navigationTitle(L10n.tr("scenario_test_data"))
+        .screenTitle(L10n.tr("scenario_test_data"))
         .screenRoot(TestIDs.testDataScreen)
     }
 }
@@ -264,15 +264,15 @@ struct DeepLinksView: View {
 
     var body: some View {
         Form {
-            Text(L10n.tr("deep_links_intro"))
-            Section(L10n.tr("deep_links_examples")) {
+            KeyText("deep_links_intro")
+            Section(key: "deep_links_examples") {
                 ForEach(Self.examples, id: \.0) { name, link in
                     Button(link) { if let parsed = DeepLinkParser.parse(link) { router.open(parsed) } }
                         .font(.system(.footnote, design: .monospaced))
                         .accessibilityIdentifier(TestIDs.deepLinkExample(name))
                 }
             }
-            Section(L10n.tr("deep_links_custom")) {
+            Section(key: "deep_links_custom") {
                 TextField(L10n.tr("deep_links_url"), text: $input)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
@@ -289,7 +289,7 @@ struct DeepLinksView: View {
                 .accessibilityIdentifier(TestIDs.deepLinkOpen)
             }
         }
-        .navigationTitle(L10n.tr("scenario_deep_links"))
+        .screenTitle(L10n.tr("scenario_deep_links"))
         .screenRoot(TestIDs.deepLinksScreen)
     }
 }
@@ -305,7 +305,7 @@ struct DateTimeView: View {
     var body: some View {
         Form {
             ValueRow(label: L10n.tr("date_time_reference"), value: DateMath.referenceDate, valueID: TestIDs.dateTimeReference)
-            DatePicker(L10n.tr("form_pick_date"), selection: $date, displayedComponents: .date)
+            DatePicker(selection: $date, displayedComponents: .date) { KeyText("form_pick_date") }
                 .environment(\.timeZone, TimeZone(identifier: "UTC")!)
                 .accessibilityIdentifier(TestIDs.dateTimePickDate)
                 .onChange(of: date) { _, value in dateValue = DateMath.isoFormatter.string(from: value) }
@@ -314,13 +314,13 @@ struct DateTimeView: View {
             ValueRow(label: L10n.tr("date_time_days_from_reference"),
                      value: DateMath.daysFromReference(dateValue).map { L10n.plural("date_time_days", $0) } ?? L10n.tr("value_not_set"),
                      valueID: TestIDs.dateTimeDaysFromReference)
-            DatePicker(L10n.tr("form_pick_time"), selection: $time, displayedComponents: .hourAndMinute)
+            DatePicker(selection: $time, displayedComponents: .hourAndMinute) { KeyText("form_pick_time") }
                 .accessibilityIdentifier(TestIDs.dateTimePickTime)
                 .onChange(of: time) { _, value in timeValue = FormsView.timeString(value) }
             ValueRow(label: L10n.tr("date_time_selected_time"), value: timeValue.isEmpty ? L10n.tr("value_not_set") : timeValue,
                      valueID: TestIDs.dateTimeTimeValue)
         }
-        .navigationTitle(L10n.tr("scenario_date_time"))
+        .screenTitle(L10n.tr("scenario_date_time"))
         .screenRoot(TestIDs.dateTimeScreen)
     }
 }
@@ -336,7 +336,7 @@ struct FilePickerView: View {
 
     var body: some View {
         Form {
-            Text(L10n.tr("file_picker_intro"))
+            KeyText("file_picker_intro")
             PhotosPicker(selection: $photoItem, matching: .images) { Text(L10n.tr("file_picker_image")) }
                 .accessibilityIdentifier(TestIDs.filePickerPickImage)
             Button(L10n.tr("file_picker_document")) { importing = true }.accessibilityIdentifier(TestIDs.filePickerPickDocument)
@@ -369,7 +369,7 @@ struct FilePickerView: View {
                 size = data?.count
             }
         }
-        .navigationTitle(L10n.tr("scenario_file_picker"))
+        .screenTitle(L10n.tr("scenario_file_picker"))
         .screenRoot(TestIDs.filePickerScreen)
     }
 }
@@ -382,7 +382,7 @@ struct NotificationsView: View {
 
     var body: some View {
         Form {
-            Text(L10n.tr("notifications_intro"))
+            KeyText("notifications_intro")
             ValueRow(label: L10n.tr("permission_notifications"), value: L10n.tr(permission.labelKey),
                 valueID: TestIDs.notificationsPermissionStatus)
             if permission == .notRequested {
@@ -400,7 +400,7 @@ struct NotificationsView: View {
                 .accessibilityIdentifier(TestIDs.notificationsSchedule)
             ValueRow(label: L10n.tr("notifications_status"), value: L10n.tr(status), valueID: TestIDs.notificationsStatus)
         }
-        .navigationTitle(L10n.tr("scenario_notifications"))
+        .screenTitle(L10n.tr("scenario_notifications"))
         .task { await refresh() }
         .screenRoot(TestIDs.notificationsScreen)
     }

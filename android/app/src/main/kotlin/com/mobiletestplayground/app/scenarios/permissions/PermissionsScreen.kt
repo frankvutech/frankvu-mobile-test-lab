@@ -139,7 +139,11 @@ private fun PermissionCard(permission: PlaygroundPermission, refresh: Int, onRes
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { onResult() }
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp)) {
-            Text(stringResource(permission.label), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(permission.label),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.testTag(textTag(permission.label)),
+            )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     stringResource(status.label()),

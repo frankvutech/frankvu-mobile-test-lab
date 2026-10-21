@@ -149,10 +149,56 @@ authorization (customer denied, admin allowed, deep link redirect), forms, lists
 alert), navigation (stack, back, modal, background/foreground), alerts and action sheet, gestures,
 WebView round trip, identifiers and Test Mode reset.
 
+## Identifier coverage
+
+Every element either app shows has an automation ID. Two audit tests enforce this and fail on any
+element without one, so a new screen or control cannot ship untagged:
+
+| Platform | Test | Sees |
+|---|---|---|
+| Android | `IdentifierCoverageTest` (Compose, instrumented) | The merged semantics tree, which is what TalkBack and UIAutomator see |
+| iOS | `IdentifierCoverageUITests` (XCUITest) | Accessibility snapshots of the app window |
+
+Both open every screen: signed out, signed in as admin, all 20 scenarios and the navigation
+sub-screens. They scroll every container to its end. Both also open the states that only exist after
+an action: the other list tabs, the bottom sheet, the snackbar, the error states and the loaded
+dynamic content. On Android this also covers the four dialogs, the action sheet and the country menu.
+
+```bash
+cd android && ./gradlew :app:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.mobiletestplayground.app.compose.IdentifierCoverageTest
+xcodebuild test -project ios/MobileTestPlayground.xcodeproj -scheme MobileTestPlayground \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -only-testing:MobileTestPlaygroundUITests/IdentifierCoverageUITests
+```
+
+A failure lists each element as `<kind> "<text>" in <nearest identified ancestor>`, grouped by
+screen. Name new IDs by the rules in [test-ids.md](test-ids.md).
+
+**What counts as an element:** text, images, input fields, buttons, toggles, sliders, progress
+indicators and scroll containers. Text and icons inside an identified control are part of that
+control. The same applies to an identified element that reads as one (merged, so it has its own
+label or value), such as a list row. On Android this follows from the merged tree. On iOS, XCUITest
+lists a button's text as a child, so the audit skips the children of identified controls and merged
+elements.
+
+**Not checked, because the app cannot set an identifier on them:**
+- **Android:** two nodes Material's modal bottom sheet adds itself, the dismiss scrim ("Close
+  sheet") and the drag-handle wrapper ("Drag handle"). Address the sheet by `action_sheet` /
+  `bottom_sheet`.
+- **Both:** system-drawn UI: status bar, keyboard, scroll indicators, the system back button,
+  permission prompts, and the contents of the platform date/time pickers. Address a picker by its
+  own ID.
+- **iOS:** system alerts and confirmation dialogs (the four dialogs and the action sheet are
+  `UIAlertController`s, whose title, message and buttons take no identifiers; address them by label,
+  e.g. `app.alerts.buttons["Delete"]`). Also the HTML inside the web view; use its HTML ids.
+
 ## Platform differences
 
 | Area | Android | iOS |
 |---|---|---|
+| Screen title | `top_bar_title` (app bar title) | `top_bar_title` (a toolbar item set by `screenTitle(_:)`; the system title stays for VoiceOver and back buttons) |
+| Scroll container | `<screen>_scroll`, separate from the screen root | The screen root is usually the scroll container itself (`Form`/`List`), so it has one ID; `dialogs_scroll` exists where an overlay wraps the form |
 | Back button | `top_bar_back` | System back button: `app.navigationBars.buttons.element(boundBy: 0)` |
 | Bottom navigation | `bottom_nav_*` tags | `bottom_nav_*` identifiers on the tab bar buttons (verified on iOS 26 / Xcode 27); index-based `app.tabBars.buttons.element(boundBy: n)` also works |
 | Date picker | Dialog: `form_date` → `date_picker_confirm` | Inline `DatePicker` (`form_date`) + `form_date_confirm` to apply it |

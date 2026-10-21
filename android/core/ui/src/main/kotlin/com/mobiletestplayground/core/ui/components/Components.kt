@@ -26,10 +26,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -99,7 +101,24 @@ fun PlaygroundScaffold(
                 actions = actions,
             )
         },
-        snackbarHost = { snackbarHostState?.let { SnackbarHost(it) } },
+        snackbarHost = {
+            snackbarHostState?.let { state ->
+                SnackbarHost(state) { data ->
+                    Snackbar(
+                        modifier = Modifier.testTag(TestTags.SNACKBAR),
+                        action = data.visuals.actionLabel?.let { label ->
+                            {
+                                TextButton(onClick = data::performAction, modifier = Modifier.testTag(TestTags.SNACKBAR_ACTION)) {
+                                    Text(label)
+                                }
+                            }
+                        },
+                    ) {
+                        Text(data.visuals.message, modifier = Modifier.testTag(TestTags.SNACKBAR_MESSAGE))
+                    }
+                }
+            }
+        },
     ) { padding ->
         Box(
             Modifier

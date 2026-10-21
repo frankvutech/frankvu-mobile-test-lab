@@ -89,8 +89,13 @@ fun DialogsScreen(onBack: () -> Unit) {
     when (open) {
         DialogSurface.CONFIRMATION -> AlertDialog(
             onDismissRequest = close,
-            title = { Text(stringResource(R.string.dialog_delete_title)) },
-            text = { Text(stringResource(R.string.dialog_delete_message, "Item 001")) },
+            title = { Text(stringResource(R.string.dialog_delete_title), Modifier.testTag(TestTags.title(TestTags.DIALOG_CONFIRMATION))) },
+            text = {
+                Text(
+                    stringResource(R.string.dialog_delete_message, "Item 001"),
+                    Modifier.testTag(TestTags.message(TestTags.DIALOG_CONFIRMATION)),
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -147,7 +152,7 @@ fun DialogsScreen(onBack: () -> Unit) {
                 Text(
                     stringResource(R.string.dialogs_action_sheet),
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(16.dp).testTag(TestTags.title(TestTags.ACTION_SHEET)),
                 )
                 actionSheetOptions.forEach { option ->
                     ListItem(
@@ -175,8 +180,15 @@ fun DialogsScreen(onBack: () -> Unit) {
             modifier = Modifier.testTag(TestTags.BOTTOM_SHEET),
         ) {
             Column(Modifier.padding(16.dp)) {
-                Text(stringResource(R.string.dialogs_bottom_sheet), style = MaterialTheme.typography.titleMedium)
-                Text(stringResource(R.string.dialogs_bottom_sheet_body), modifier = Modifier.padding(vertical = 12.dp))
+                Text(
+                    stringResource(R.string.dialogs_bottom_sheet),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.testTag(TestTags.title(TestTags.BOTTOM_SHEET)),
+                )
+                Text(
+                    stringResource(R.string.dialogs_bottom_sheet_body),
+                    modifier = Modifier.padding(vertical = 12.dp).testTag(TestTags.message(TestTags.BOTTOM_SHEET)),
+                )
                 Button(
                     onClick = {
                         result = "bottom_sheet_closed"
@@ -200,8 +212,8 @@ private fun SingleActionDialog(icon: ImageVector, title: Int, body: Int, tag: St
     AlertDialog(
         onDismissRequest = onOk,
         icon = { Icon(icon, contentDescription = null) },
-        title = { Text(stringResource(title)) },
-        text = { Text(stringResource(body)) },
+        title = { Text(stringResource(title), Modifier.testTag(TestTags.title(tag))) },
+        text = { Text(stringResource(body), Modifier.testTag(TestTags.message(tag))) },
         confirmButton = {
             TextButton(onClick = onOk, modifier = Modifier.testTag(TestTags.DIALOG_OK)) { Text(stringResource(R.string.action_ok)) }
         },
